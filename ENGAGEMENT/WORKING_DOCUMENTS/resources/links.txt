@@ -1,0 +1,89 @@
+https://lolbas-project.github.io/
+https://awesomelists.top/#/repos/qazbnm456/awesome-cve-poc
+https://github.com/Cn33liz/SharpCat
+https://github.com/SySS-Research/Seth rdp mitm
+https://gist.github.com/wshepherd0010/3041fe8dcc0c8731f811d79e557a7ece airpwn ng
+https://gist.github.com/wshepherd0010/33fa3ed27f2c40effbdbd63d1ae5fe3c arp spoofing template
+https://gist.github.com/wshepherd0010/5316320d4cbcbb09c4b46b454ea76bb1 dhcp spoofing
+https://gist.github.com/wshepherd0010/c967566dcb5f289dac4ae908ec24c374 arp spoofing
+https://github.com/truongkma/ctf-tools nice tools
+https://0x00sec.org/t/c-hash-cracking/1268 dotnet hash cracking
+https://github.com/danielmiessler/SecLists seclists files
+https://blog.netspi.com/decrypting-mssql-credential-passwords/ crack mssql hashes
+https://m0chan.github.io/2019/07/30/Windows-Notes-and-Cheatsheet.html windows snippets
+https://www.codeproject.com/Articles/19538/Encrypt-Decrypt-String-using-DES-in-C c# des crack
+https://github.com/NotMedic/NetNTLMtoSilverTicket cracking downgrading
+https://github.com/h1kari/desrtop des rainbow tables
+https://threatexpress.com/blogs/2019/penetration-testing-pasties/ scan snippets smb
+https://openwall.info/wiki/john/MSCash cached domain cred cracking
+https://github.com/s3inlc/hashtopolis distributed hashcat
+https://gist.github.com/wshepherd0010/0f619c5037a456129f2111d33e835953 bash helper windows
+https://linuxconfig.org/ssh-password-testing-with-hydra-on-kali-linux brute ssh
+https://github.com/Bleschke/LinuxPasswordCracker/blob/master/assignment2.py crack shadow
+https://github.com/andrew-d/static-binaries static binaries
+https://github.com/nomi-sec/PoC-in-GitHub
+https://github.com/lorddemon/drupalgeddon2
+https://github.com/pimps/CVE-2018-7600 drupal better
+https://www.exploit-db.com/exploits/44482 msf drupal
+https://github.com/1337g/Drupalgedon3
+https://gist.github.com/wshepherd0010/9a7f986246bf91607ff4a15bcd9f56c7 sharepoint
+https://gist.github.com/wshepherd0010/61b49219d4e2450936505fa95c74ca5a ms17 010
+https://github.com/mazen160/struts-pwn_CVE-2018-11776 struts
+https://github.com/mazen160/struts-pwn_CVE-2017-9805 struts
+https://github.com/trustedsec/cve-2019-19781 citrix
+https://github.com/euphrat1ca/CVE-2020-0618 sql serve reporter
+https://github.com/securifera/CVE-2019-1579 palo alto
+https://github.com/CVE-2019-0708/CVE-2019-0708 bluekeep rdp
+https://gist.github.com/wshepherd0010/3234a67f277add647f7aeaeb68d57b79 exploit template
+https://gist.github.com/wshepherd0010/829d3eaf51a65c658dbc83ae54176d39 ps http server
+https://gist.github.com/wshepherd0010/bb2464cdab9fa04f75d742e7f223d919 webshell
+https://gist.github.com/wshepherd0010/b6040a965086cf9c5e68e1b183f89047 regeorge 2
+https://gist.github.com/wshepherd0010/2d19e5412141601ebfff3d27e3305134 winrmpsrp
+https://gist.github.com/wshepherd0010/1df24e650de80c799633217031b3249a spraying scripts
+https://gist.github.com/wshepherd0010/a912aca4cdcf28d7ae870aaf51df54eb padbusting snippets
+https://gist.github.com/wshepherd0010/e1e46a90503ca366f32b21d03d7c0085 x64 shellcode gen
+https://gist.github.com/wshepherd0010/22ba8428e56ff44e35bbb618531cadbf windows cli snippets
+https://gist.github.com/wshepherd0010/3e8ee35e05de4cf0a6bc33772f36a971 ruler snippets owa
+https://gist.github.com/wshepherd0010/4651e50b76c1a7bbf1ed738736faaa36 cracking hashes
+https://gist.github.com/wshepherd0010/5a2901875f8bc49cf6b32120882f5ea6 winrm example
+https://github.com/dafthack/RDPSpray
+https://github.com/BleepSec/CVE-2020-0601 ms crypto
+https://github.com/qazbnm456/awesome-cve-poc?files=1 cve list
+https://github.com/TsukiCTF/Lovely-Potato
+https://ohpe.it/juicy-potato/
+https://github.com/ohpe/juicy-potato
+https://github.com/nettitude/PoshC2 windows post exploit modules
+https://github.com/cobbr/SharpSploit
+https://github.com/securifera/CVE-2019-1579/blob/master/CVE-2019-1579_8.0.7_mips.py
+https://github.com/nibiwodong/CNVD-2020-10487-Tomcat-ajp-POC/blob/master/poc.py ajp
+https://github.com/w4fz5uck5/CVE-2020-1938-Clean-Version/blob/master/ghostcat-poc-de-macho-alfa.py ajp
+https://github.com/spencerdodd/pfsense-code-exec
+https://github.com/spencerdodd/pfsense-code-exec/blob/master/pfsense_exec.py
+https://github.com/fox-it/Invoke-ACLPwn
+https://github.com/initstring/dirty_sock
+https://github.com/rebootuser/LinEnum
+https://github.com/d4rk007/RedGhost linux post exploit
+https://github.com/FireFart/CVE-2018-7600/blob/master/poc.py drupal
+https://github.com/dirkjanm/krbrelayx/
+https://github.com/fox-it/mitm6
+https://github.com/PowerShellMafia/PowerSploit
+https://github.com/samratashok/nishang
+https://github.com/inquisb/icmpsh
+https://github.com/p3nt4/Invoke-SocksProxy
+https://github.com/besimorhino/powercat
+https://github.com/Kevin-Robertson/Inveigh
+https://github.com/Kevin-Robertson/Invoke-TheHash
+https://github.com/Kevin-Robertson/Powermad
+https://github.com/NetSPI/PowerUpSQL
+https://github.com/mdsecactivebreach/WMIPersistence/
+https://github.com/bspence7337/Invoke-WMIpersist
+https://github.com/rootm0s/WinPwnage
+https://github.com/gaffe23/linux-inject
+https://github.com/geekscrapy/timestomper
+https://github.com/redcanaryco/atomic-red-team
+https://github.com/countercept/dotnet-gargoyle
+https://github.com/pwntester/ysoserial.net
+https://github.com/andrew-d/static-binaries/tree/master/binaries/linux/x86_64
+https://github.com/tyranid/DotNetToJScript
+https://github.com/bitsadmin/nopowershell
+https://github.com/Hackplayers/evil-winrm

@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2020-04-28T09:59:22-04:00
+
+====== 2 RESULTS ======
+Created Tuesday 28 April 2020
+
+==== Summary ====
+On or about 01/01/2020, penetration testers from ORGANIZATION, were tasked with performing a penetration test (assessment) of the ASSET, in order to determine the exposure to a targeted attack. All activities were conducted in a manner that simulated a sophisticated threat actor engaged in a targeted attack against the ASSET with the goals of:
+		
+1. Identify if an attacker can penetrate the ASSET network defenses.
+2. Determine the impact of a security breach on:
+	a. Confidentiality of sensitive ASSET data
+	b. Availability of ASSET network infrastructure and information systems
+
+Efforts were placed on the identification and exploitation of security weaknesses that could allow a threat actor to gain unauthorized access to ORGANIZATION data. The attacks were conducted with a level of access consisting of PLACEHOLDER. The assessment was conducted in accordance with PLACEHOLDER.
+
+==== Results ====
+PLACEHOLDER

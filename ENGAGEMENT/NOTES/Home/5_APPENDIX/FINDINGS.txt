@@ -1,0 +1,33 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2020-04-28T10:00:33-04:00
+
+====== FINDINGS ======
+Created Tuesday 28 April 2020
+
+==== VULNERABILITY TITLE ====
+Overall Rating:	PLACEHOLDER
+Likelihood Rating:	PLACEHOLDER
+Impact Rating:	PLACEHOLDER
+
+Description:	Description of the vulnerability here.
+
+Impact:	Description of impact to confidentiality, integrity, and availability here.
+
+Remediation:	Strategic, operational, and tactical remediations here. 
+
+Resources: Links and citations here.
+
+==== VULNERABILITY TITLE ====
+Overall Rating:	PLACEHOLDER
+Likelihood Rating:	PLACEHOLDER
+Impact Rating:	PLACEHOLDER
+
+Description:	Description of the vulnerability here.
+
+Impact:	Description of impact to confidentiality, integrity, and availability here.
+
+Remediation:	Strategic, operational, and tactical remediations here. 
+
+Resources: Links and citations here.
+

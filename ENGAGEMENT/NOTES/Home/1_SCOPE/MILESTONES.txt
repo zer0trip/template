@@ -1,0 +1,62 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2020-04-28T10:22:34-04:00
+
+====== MILESTONES ======
+Created Tuesday 28 April 2020
+
+==== Pre-Engagement ====
+* Scoping meeting
+* Establish rules of engagement
+* Planning and coordination
+* 01/01/2020 – 01/01/2020
+
+==== Reconnaissance ====
+* Passive reconnaissance
+* Passive information gathering
+* WHOIS/BGP/DNS enumeration
+* Fingerprinting
+
+==== Active reconnaissance ====
+* Host Discovery
+* Content discovery
+* Service scanning
+* 01/01/2020 – 01/01/2020
+
+==== Enumeration ====
+* Active fingerprinting
+* Manual enumeration
+* Threat modeling
+* Vulnerability analysis
+* 01/01/2020 – 01/01/2020
+
+==== Exploitation ====
+* Vulnerability validation
+* Exploit development
+* Initial foothold
+* 01/01/2020 – 01/01/2020
+
+==== Post-Exploitation ====
+* Exploitation
+* Primary goals
+* Secondary goals
+
+==== Actions on penetration ====
+* Local assessment
+* Persistence
+* Privilege escalation
+* Lateral movement
+
+==== Cleanup ====
+* Tactical withdrawal
+* Removing artifacts
+
+==== Reporting ====
+* Note consolidation
+* Final deliverables
+* Detailed report
+* Executive summary
+
+==== Post-assessment ====
+* AAR
+* 01/01/2020 – 01/01/2020

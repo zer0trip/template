@@ -1,0 +1,69 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2020-04-28T09:59:08-04:00
+
+====== 1 SCOPE ======
+Created Tuesday 28 April 2020
+
+==== Description ====
+Description of what is being tested here.
+
+==== GOALS ====
+1. Identify if an attacker can penetrate the ASSET network defenses.
+2. Determine the impact of a security breach on:
+	a. Confidentiality of sensitive ASSET data
+	b. Availability of ASSET network infrastructure and information systems
+
+==== PRIMARY TARGETS ====
+Primary targets (systems explicitly targeted) include TARGETS. A full comprehensive list
+of primary targets is included in the appendix section [1].
+
+==== SECONDARY TARGETS ====
+Secondary targets (systems potentially targeted as needed) include devices
+and systems directly associated with the ASSET network infrastructure
+and domain. 
+
+==== OUT OF SCOPE ====
+Any systems, networks, and devices not owned by ORGANIZATION; directly associated
+with the ASSET network infrastructure; or potentially damaging to
+business continuity.
+
+==== DEFENSE ====
+Firewalls and IDS/NIDS devices here.
+
+==== ACTIONS ON OBJECTIVE ====
+1. Perform a local vulnerability assessment on the compromised machine.
+2. Attempt to gain the highest privileges on the compromised machine and
+domain.
+3. Perform minimal, dictionary, or exhaustive password attacks against local
+password hashes obtained.
+4. Attempt to move laterally to other machines and subnets within the
+network infrastructure.
+
+==== TIMELINE ====
+01/01/2020 – 02/01/2020
+Monday - Friday 08:00 AM – 04:00 PM EST
+
+==== SITREPS ====
+Status contacts are POC, POC, POC
+1. Correspondence secured by PLACEHOLDER encryption.
+2. Final deliverables to designated recipients via secure email.
+3. Status emails regarding plans, progress, and/or problems as needed.
+4. Email immediately on critical findings and/or emergency
+
+==== POCS ====
+POC TITLE
+PHONE | EMAILADDRESS
+
+POC TITLE
+PHONE | EMAILADDRESS
+
+==== TEAM ====
+NAME TITLE
+PHONE | EMAILADDRESS
+
+NAME TITLE
+PHONE | EMAILADDRESS
+
+NAME TITLE
+PHONE | EMAILADDRESS
