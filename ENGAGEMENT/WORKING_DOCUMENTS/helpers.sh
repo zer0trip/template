@@ -110,7 +110,7 @@ function scanSMBSettings(){
     # ARGUMENT: TARGET.
     TARGET=$1;
     proxychains \
-    nmap -v \
+    nmap -v -Pn -sT \
     --script smb-security-mode,smb2-security-mode -T 3 \
          --open -p445 \
          -iL $TARGET \
@@ -123,7 +123,7 @@ function fingerPrintSMBHTTP(){
     # ARGUMENT: TARGET.
     TARGET=$1;
     proxychains \
-    nmap -v -sC -sV -T 4 \
+    nmap -v -Pn -sT -sV -T 3 \
          --open -p445,80,443 \
          -iL $TARGET \
          -oA "${TARGET}_smb_http_scans";
@@ -135,7 +135,7 @@ function serviceScan(){
     # ARGUMENT: TARGET.
     TARGET=$1;
     proxychains \
-    nmap -v -T 4 -Pn \
+    nmap -v -T 4 -Pn -sT \
          --open -p53,135,137,139,445,80,443,3389,386,636,5985,2701,1433,1961,1962 \
          -iL $TARGET \
          -oA "${TARGET}_service_scans";
@@ -147,7 +147,7 @@ function dnsScan(){
     # ARGUMENT: TARGET.
     TARGET=$1;
     proxychains \
-    nmap -oA "${TARGET}_dns_scan" --open -p T:53,U:53 -T 3 $TARGET;
+    nmap -v -Pn -sT -oA "${TARGET}_dns_scan" --open -p T:53,U:53 -T 3 $TARGET;
     return;
 }
 
