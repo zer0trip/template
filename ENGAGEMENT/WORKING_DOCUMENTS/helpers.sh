@@ -4,6 +4,7 @@
 # SECTION: Required dependencies:
 # DESCRIPTION: Required github repositories used in helper functions.
 
+# https://github.com/dirkjanm/adidnsdump
 # https://github.com/fox-it/adconnectdump.git
 # https://github.com/Hackplayers/evil-winrm.git
 # https://github.com/SecureAuthCorp/impacket.git
@@ -139,6 +140,64 @@ function setLocalUserByHash(){
 
 # SECTION: Unauthenticated reconnaissance helper functions:
 
+function digDump(){
+    # DESCRIPTION: Perform dig queries on gd, ldap, kerberos, kpasswd, and any.
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    proxychains \
+    dig -t SRV _gc._tcp.${TARGET};
+    proxychains \
+    dig -t SRV _ldap._tcp.${TARGET};
+    proxychains \
+    dig -t SRV _kerberos._tcp.${TARGET};
+    proxychains \
+    dig -t SRV _kpasswd._tcp.${TARGET};
+    proxychains \
+    dig any $TARGET;
+    return;
+}
+
+function whoisARIN(){
+    # DESCRIPTION: Perform whois query of IP against ARIN.
+    # ARGUMENT: IPADDRESS.
+    IPADDRESS=$1;
+    proxychains \
+    whois -h whois.arin.net $IPADDRESS;
+    return;
+}
+
+function dsNslookup(){
+    # DESCRIPTION: LDAP and Kerberos internal DNS lookup.
+    # ARGUMENT: TARGET, NSERVER.
+    TARGET=$1;
+    NSERVER=$2;
+    proxychains \
+    nslookup -type=srv _ldap._tcp.dc._msdcs.${TARGET} ${NSERVER};
+    proxychains \
+    nslookup -type=srv _kerberos._tcp.dc._msdcs.${TARGET} ${NSERVER};
+    return;
+}
+
+function dnsRecon(){
+    # DESCRIPTION: DNS recon query against target NS and domain.
+    # ARGUMENT: TARGET, NSERVER.
+    TARGET=$1;
+    NSERVER=$2;
+    proxychains \
+    dnsrecon -d $TARGET -n $NSERVER;
+    return;
+}
+
+function ldapQuery(){
+    # DESCRIPTION: Unauthenticated LDAP query for objectClass=*
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    proxychains \
+    ldapsearch -LLL -x \
+    -H ldap://${TARGET} -b '' -s base '(objectclass=*)';
+    return;
+}
+
 function pingSweeps(){
     # DESCRIPTION: Ping sweep of target list with random data.
     # ARGUMENT: TARGET.
@@ -194,6 +253,17 @@ function serviceScan(){
     return;
 }
 
+function dnsSrvEnum(){
+    # DESCRIPTION: DNS server enumeration against target domain.
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    proxychains \
+    nmap -v -Pn -sT -oA "${TARGET}_dns_srv_enum" \
+    --script dns-srv-enum \
+    --script-args "dns-srv-enum.domain='${TARGET}'";
+    return;
+}
+
 function dnsScan(){
     # DESCRIPTION: Scan target for TCP/UDP DNS services.
     # ARGUMENT: TARGET.
@@ -245,6 +315,18 @@ function dumpSIDs(){
 }
 
 # SECTION: Authenticated reconnaissance function helpers:
+
+function adDNSDump(){
+    # DESCRIPTION: Perform adidnsdump of zones using PASSWORD (hash or plaintext).
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    proxychains \
+    adidnsdump --print-zones \
+    -u ${DOMAIN}\\${USER} \
+    -p $PASSWORD \
+    -v $TARGET;
+    return;
+}
 
 function runBloodhound(){
     # DESCRIPTION: Run Bloodhound ingestor on target domain controllers.
@@ -580,12 +662,13 @@ function getUnconstrainedComputers(){
 
 function getUser(){
     # DESCRIPTION: Scan for user details in target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: TARGET, TDOMAIN.
     TARGET=$1;
+    TDOMAIN=$2;
     proxychains \
     pywerview get-netuser -w $DOMAIN -u $USER \
     --hashes $HASHES \
-    -t $DCIP -d $DOMAIN --username $TARGET;
+    -t $DCIP -d $TDOMAIN --username $TARGET;
     return;
 }
 
