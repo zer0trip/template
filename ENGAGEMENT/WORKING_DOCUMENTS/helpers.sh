@@ -14,6 +14,7 @@
 # https://github.com/Gallopsled/pwntools.git
 # https://github.com/fox-it/BloodHound.py.git
 # https://github.com/wshepherd0010/network.git
+# googlesearch
 
 # SECTION: Global environment variables:
 # DESCRIPTION: Environment variables used in helper functions -- DOMAIN, USER, PASSWORD, DCIP, C2SERVER, and IMPLANT.
@@ -55,6 +56,16 @@ function stopLoggingSession(){
     # DESCRIPTION: Log bash session to file /var/LOGNAME_session_d_m_y_HM.log.
     # ARGUMENT: LOGNAME.
     pkill screen;
+    return;
+}
+
+
+function googleSearch(){
+    # DESCRIPTION: Quick Google search against domains for strings/terms.
+    # ARGUMENT: DOMAINS, TERMS.
+    DOMAINS=$1;
+    TERMS=$2;
+    googlesearch --domains=${DOMAINS} --all $TERMS;
     return;
 }
 
