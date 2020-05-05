@@ -21,15 +21,15 @@
 # DESCRIPTION: Environment variables used in helper functions -- DOMAIN, USER, PASSWORD, DCIP, C2SERVER, and IMPLANT.
 
 export HELPER="${PWD}/helpers.sh";
-export DOMAIN='';
+export DOMAIN='eas.ds.ky.gov';
 export USER='';
 export PASSWORD='';
-export DCIP='';
+export DCIP='eas.ds.ky.gov';
 export DOMAINUSER='';
 export HASH='';
 export HASHES='';
-export C2SERVER='';
-export IMPLANT='';
+export C2SERVER='10.49.117.253';
+export IMPLANT='icmp-shell.txt';
 
 # SECTION: General helper functions:
 
@@ -42,6 +42,23 @@ function showHelp(){
         |cut -d'(' -f1\
         |sed 's/SEC/\nSEC/g' ;`
     printf "$HELP";
+    return;
+}
+
+function installHelper(){
+    # DESCRIPTION: Install dependencies for functions.
+    # ARGUMENT: None.
+    cd /opt;
+    git clone https://github.com/dirkjanm/adidnsdump.git
+    git clone https://github.com/fox-it/adconnectdump.git
+    git clone https://github.com/Hackplayers/evil-winrm.git
+    git clone https://github.com/SecureAuthCorp/impacket.git
+    git clone https://github.com/dirkjanm/krbrelayx.git
+    git clone https://github.com/fox-it/mitm6.git
+    git clone https://github.com/the-useless-one/pywerview.git
+    git clone https://github.com/Gallopsled/pwntools.git
+    git clone https://github.com/fox-it/BloodHound.py.git
+    git clone https://github.com/5alt/ultrarelay.git
     return;
 }
 
