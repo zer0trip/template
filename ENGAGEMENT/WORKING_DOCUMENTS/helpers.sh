@@ -206,6 +206,16 @@ function digDump(){
     return;
 }
 
+function dhcpBroadcastScan(){
+    # DESCRIPTION: Scan DHCP broadcast for IPv4 and IPv6
+    # ARGUMENT: None.
+    nmap -v -oA "broadcast_dhcp" \
+    --script broadcast-dhcp-discover;
+    nmap -v -oA "broadcast_dhcp6" \
+    --script broadcast-dhcp6-discover;
+    return;
+}
+
 function whoisARIN(){
     # DESCRIPTION: Perform whois query of IP against ARIN.
     # ARGUMENT: IPADDRESS.
