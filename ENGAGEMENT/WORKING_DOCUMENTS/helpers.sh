@@ -21,15 +21,15 @@
 # DESCRIPTION: Environment variables used in helper functions -- DOMAIN, USER, PASSWORD, DCIP, C2SERVER, and IMPLANT.
 
 export HELPER="${PWD}/helpers.sh";
-export DOMAIN='eas.ds.ky.gov';
+export DOMAIN='';
 export USER='';
 export PASSWORD='';
-export DCIP='eas.ds.ky.gov';
+export DCIP='';
 export DOMAINUSER='';
 export HASH='';
 export HASHES='';
-export C2SERVER='10.49.117.253';
-export IMPLANT='icmp-shell.txt';
+export C2SERVER='';
+export IMPLANT='';
 
 # SECTION: General helper functions:
 
