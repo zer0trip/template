@@ -988,6 +988,16 @@ function smbConnect(){
 
 # SECTION: Server helper functions:
 
+function localPortForward(){
+    # DESCRIPTION: Spin up local port forward
+    # ARGUMENT: LPORT, RPORT.
+    LPORT=$1;
+    RPORT=$2;
+    socat TCP-LISTEN:${LPORT},bind=192.168.243.133,fork,reuseaddr \
+    TCP:bigkali:${RPORT};
+    return;
+}
+
 function localProxy(){
     # DESCRIPTION: Spin up local SOCKS proxy on port 1080.
     # ARGUMENT: None.
@@ -1126,7 +1136,7 @@ function removeWmiPersist(){
 
 function oraclePadbust(){
     # DESCRIPTION: Generic oracle padding attack using post and cookie files.
-    # ARGUMENT: URL, ENCDATA, POSTFILE, COOKIEFILE.        
+    # ARGUMENT: URL, ENCDATA, POSTFILE, COOKIEFILE.
     URL=$1;
     ENCDATA=$2;
     POSTFILE=$3;
@@ -1134,8 +1144,8 @@ function oraclePadbust(){
     BLOCKSIZE=8;
     ENCODING=0;
     HOSTHEADER=`echo ${URL}|cut -d '/' -f3`;
-    HEADERS="Host::${HOSTHEADER}";    
-    POSTDATA=`cat ${POSTFILE}`;    
+    HEADERS="Host::${HOSTHEADER}";
+    POSTDATA=`cat ${POSTFILE}`;
     COOKIES=`cat ${COOKIEFILE}`;
     proxychains \
     padbuster \
