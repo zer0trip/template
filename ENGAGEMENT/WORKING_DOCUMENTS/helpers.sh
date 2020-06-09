@@ -20,12 +20,12 @@ export PHRASE='';
 function showHelp(){
     # DESCRIPTION: Displays helper functions and descriptions.
     # ARGUMENTS: None.
-    HELP=`cat $HELPER | egrep "function|ARGUMENT|DESCRIPTION|SECTION:"|\
+    HELP=`cat ${HELPER} | egrep "function|ARGUMENT|DESCRIPTION|SECTION:"|\
         grep -v "HELP"\
         |cut -d' ' -f2-100\
         |cut -d'(' -f1\
         |sed 's/SEC/\nSEC/g' ;`
-    printf "$HELP";
+    printf "${HELP}";
     return;
 }
 
@@ -199,7 +199,7 @@ function googleSearch(){
     # ARGUMENT: DOMAINS, TERMS.
     DOMAINS=$1;
     TERMS=$2;
-    googlesearch --domains=${DOMAINS} --all $TERMS;
+    googlesearch --domains=${DOMAINS} --all ${TERMS};
     return;
 }
 
@@ -1175,7 +1175,7 @@ function localPortForward(){
     # ARGUMENT: LPORT, RPORT.
     LPORT=$1;
     RPORT=$2;
-    socat TCP-LISTEN:${LPORT},bind=192.168.243.133,fork,reuseaddr \
+    socat TCP-LISTEN:${LPORT},bind=vmkali,fork,reuseaddr \
     TCP:bigkali:${RPORT};
     return;
 }
@@ -1183,7 +1183,7 @@ function localPortForward(){
 function localProxy(){
     # DESCRIPTION: Spin up local SOCKS proxy on port 1080.
     # ARGUMENT: None.
-    ssh -f -N -D 192.168.243.133:1080 root@bigkali;
+    ssh -f -N -D vmkali:1080 root@bigkali;
     return;
 }
 
