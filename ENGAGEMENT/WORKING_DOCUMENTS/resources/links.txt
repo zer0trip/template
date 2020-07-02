@@ -87,3 +87,5 @@ https://github.com/andrew-d/static-binaries/tree/master/binaries/linux/x86_64
 https://github.com/tyranid/DotNetToJScript
 https://github.com/bitsadmin/nopowershell
 https://github.com/Hackplayers/evil-winrm
+https://soroush.secproject.com/blog/2019/04/exploiting-deserialisation-in-asp-net-via-viewstate/
+https://www.notsosecure.com/exploiting-viewstate-deserialization-using-blacklist3r-and-ysoserial-net/

