@@ -743,43 +743,47 @@ function getShares(){
 
 function huntUser(){
     # DESCRIPTION: Scan for users on remote target.
-    # ARGUMENT: huntUser TARGET.
+    # ARGUMENT: huntUser TARGET, TDOMAIN.
     TARGET=$1;
+    TDOMAIN=$2;
     proxychains \
     pywerview invoke-userhunter -w $DOMAIN -u $USER \
-    --hashes $HASHES --dc-ip $DCIP \
-    -d $DOMAIN --stealth --stealth-source dc \
+    --hashes $HASHES --dc-ip $TDOMAIN \
+    -d $TDOMAIN --stealth --stealth-source dc \
     --show-all --username "${TARGET}";
     return;
 }
 
 function getGroupMember(){
     # DESCRIPTION: Scan group membership on target groups.
-    # ARGUMENT: getGroupMember TARGET.
+    # ARGUMENT: getGroupMember TARGET, TDOMAIN.
     TARGET=$1;
+    TDOMAIN=$2;
     proxychains \
     pywerview get-netgroupmember -w $DOMAIN -u $USER \
-    --hashes $HASHES --dc-ip $DCIP --groupname "${TARGET}";
+    --hashes $HASHES --dc-ip $TDOMAIN --groupname "${TARGET}";
     return;
 }
 
 function getGroups(){
     # DESCRIPTION: Scan groups on targets.
-    # ARGUMENT: getGroups TARGET.
+    # ARGUMENT: getGroups TARGET, TDOMAIN.
     TARGET=$1;
+    TDOMAIN=$2;
     proxychains \
     pywerview get-netgroup -w $DOMAIN -u $USER \
-    --hashes $HASHES --dc-ip $DCIP -d ${TARGET};
+    --hashes $HASHES --dc-ip $TDOMAIN -d ${TARGET};
     return;
 }
 
 function getGroup(){
     # DESCRIPTION: Scan for target groups.
-    # ARGUMENT: getGroup TARGET.
+    # ARGUMENT: getGroup TARGET, TDOMAIN.
     TARGET=$1;
+    TDOMAIN=$2;
     proxychains \
     pywerview get-netgroup -w $DOMAIN -u $USER \
-    --hashes $HASHES --dc-ip $DCIP --groupname "${TARGET}";
+    --hashes $HASHES --dc-ip $TDOMAIN --groupname "${TARGET}";
     return;
 }
 
@@ -795,12 +799,12 @@ function getLoggedOn(){
 
 function getDomainPolicy(){
     # DESCRIPTION: Scan domain group/password policy.
-    # ARGUMENT: getDomainPolicy TARGET.
-    TARGET=$1;
+    # ARGUMENT: getDomainPolicy TDOMAIN.
+    TDOMAIN=$1;
     proxychains \
     pywerview get-domainpolicy -w $DOMAIN -u $USER \
     --hashes $HASHES \
-    -t $DCIP -d $DOMAIN;
+    -t $TDOMAIN -d $TDOMAIN;
     return;
 }
 
@@ -813,7 +817,7 @@ function getComputer(){
     pywerview get-netcomputer -w $DOMAIN -u $USER \
     --full-data --ping \
     --hashes $HASHES \
-    -t $DCIP -d $TDOMAIN --computername $TARGET;
+    -t $TDOMAIN -d $TDOMAIN --computername $TARGET;
     return;
 }
 
@@ -825,7 +829,7 @@ function getFullComputers(){
     pywerview get-netcomputer -w $DOMAIN -u $USER \
     --full-data --ping \
     --hashes $HASHES \
-    -t $DCIP -d $TARGET;
+    -t $TARGET -d $TARGET;
     return;
 }
 
@@ -836,7 +840,7 @@ function getComputers(){
     proxychains \
     pywerview get-netcomputer -w $DOMAIN -u $USER \
     --hashes $HASHES \
-    -t $DCIP -d $TARGET;
+    -t $TARGET -d $TARGET;
     return;
 }
 
@@ -859,7 +863,7 @@ function getUnconstrainedUsers(){
     proxychains \
     pywerview get-netuser -w $DOMAIN -u $USER \
     --hashes $HASHES --unconstrained \
-    -t $DCIP -d $TARGET;
+    -t $TARGET -d $TARGET;
     return;
 }
 
@@ -870,7 +874,7 @@ function getUnconstrainedComputers(){
     proxychains \
     pywerview get-netcomputer -w $DOMAIN -u $USER \
     --hashes $HASHES --unconstrained \
-    -t $DCIP -d $TARGET;
+    -t $TARGET -d $TARGET;
     return;
 }
 
@@ -882,7 +886,7 @@ function getUser(){
     proxychains \
     pywerview get-netuser -w $DOMAIN -u $USER \
     --hashes $HASHES \
-    -t $DCIP -d $TDOMAIN --username $TARGET;
+    -t $TDOMAIN -d $TDOMAIN --username $TARGET;
     return;
 }
 
@@ -894,7 +898,7 @@ function getUsers(){
     pywerview get-netuser \
     -w $DOMAIN -u $USER \
     --hashes $HASHES \
-    -t $DCIP -d $TARGET;
+    -t $TARGET -d $TARGET;
     return;
 }
 
